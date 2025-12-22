@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Faculty {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?
+  departments Department[]
+}
+
+model Department {
+  id             Int             @id @default(autoincrement())
+  facultyId      Int
+  name           String
+  faculty        Faculty         @relation(fields: [facultyId], references: [id])
+  degreePrograms DegreeProgram[]
+  courses        Course[]
+}
+
+model DegreeProgram {
+  id           Int           @id @default(autoincrement())
+  departmentId Int
+  name         String
+  department   Department    @relation(fields: [departmentId], references: [id])
+  userProfiles UserProfile[]
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  username    String       @unique
+  email       String       @unique
+  role        String
+  wso2_id     String       @unique
+  userProfile UserProfile?
+}
+
+model UserProfile {
+  id              Int            @id @default(autoincrement())
+  userId          Int            @unique
+  degreeProgramId Int?
+  student_id      String?        @unique
+  full_name       String
+  description     String?
+  gpa             Float?
+  email           String
+  academic_year   String?
+  user            User           @relation(fields: [userId], references: [id])
+  degreeProgram   DegreeProgram? @relation(fields: [degreeProgramId], references: [id])
+  enrollments     Enrollment[]
+  borrowRecords   BorrowRecord[]
+}
+
+model Course {
+  id            Int          @id @default(autoincrement())
+  departmentId  Int
+  code          String       @unique
+  name          String
+  credits       Int
+  description   String?
+  year_level    Int
+  academic_year String
+  department    Department   @relation(fields: [departmentId], references: [id])
+  enrollments   Enrollment[]
+}
+
+model Enrollment {
+  id            Int         @id @default(autoincrement())
+  userProfileId Int
+  courseId      Int
+  semester      Int
+  grade         String?
+  academic_year String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
+  course        Course      @relation(fields: [courseId], references: [id])
+}
+
+model Book {
+  id               Int            @id @default(autoincrement())
+  title            String
+  author           String
+  isbn             String         @unique
+  total_copies     Int
+  available_copies Int
+  description      String?
+  year             Int
+  borrowRecords    BorrowRecord[]
+}
+
+model BorrowRecord {
+  id            Int         @id @default(autoincrement())
+  userProfileId Int
+  bookId        Int
+  borrow_date   DateTime    @default(now())
+  due_date      DateTime
+  return_date   DateTime?
+  status        String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
+  book          Book        @relation(fields: [bookId], references: [id])
+}

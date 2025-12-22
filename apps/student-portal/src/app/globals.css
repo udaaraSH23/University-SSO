@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@source "../../../../packages/ui";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: white;
+  --foreground: black;
+}
+.dark {
+  --background: black;
+  --foreground: white;
+}
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
