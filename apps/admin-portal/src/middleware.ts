@@ -19,48 +19,49 @@ const ADMIN_PORTAL_URL =
  * Admin Portal Middleware.
  * Enforces role-based access control.
  */
+const PUBLIC_ROUTES = ["/login", "/auth"];
+
 export default auth((req) => {
   const { nextUrl } = req;
   const isAuthenticated = !!req.auth;
   const userRole = req.auth?.user?.role;
 
-  // 1. Redirect to login if not authenticated
-  if (
-    !isAuthenticated &&
-    nextUrl.pathname !== "/login" &&
-    !nextUrl.pathname.startsWith("/auth/")
-  ) {
+  const isPublicRoute = PUBLIC_ROUTES.some((route) =>
+    nextUrl.pathname.startsWith(route)
+  );
+
+  // 1. Redirect to login if not authenticated and trying to access a protected route
+  if (!isAuthenticated && !isPublicRoute) {
     return NextResponse.redirect(new URL("/login", nextUrl.origin));
   }
 
-  // 2. Redirect authenticated users to their specific portal if role mismatches
-  if (
-    isAuthenticated &&
-    nextUrl.pathname !== "/login" &&
-    !nextUrl.pathname.startsWith("/auth/")
-  ) {
-    if (userRole === "student") {
-      return NextResponse.redirect(
-        new URL(
-          `/auth/redirect?to=${encodeURIComponent(STUDENT_PORTAL_URL)}`,
-          nextUrl.origin
-        )
-      );
+  // 2. Handle authenticated users
+  if (isAuthenticated) {
+    // If on login page, redirect to dashboard
+    if (nextUrl.pathname === "/login") {
+      return NextResponse.redirect(new URL("/", nextUrl.origin));
     }
-    if (userRole === "librarian") {
-      return NextResponse.redirect(
-        new URL(
-          `/auth/redirect?to=${encodeURIComponent(LIBRARY_PORTAL_URL)}`,
-          nextUrl.origin
-        )
-      );
-    }
-    // If admin, allow access
-  }
 
-  // 3. If on login page but authenticated, redirect to home
-  if (isAuthenticated && nextUrl.pathname === "/login") {
-    return NextResponse.redirect(new URL("/", nextUrl.origin));
+    // Role-based redirection for protected routes
+    if (!isPublicRoute) {
+      if (userRole === "student") {
+        return NextResponse.redirect(
+          new URL(
+            `/auth/redirect?to=${encodeURIComponent(STUDENT_PORTAL_URL)}`,
+            nextUrl.origin
+          )
+        );
+      }
+      if (userRole === "librarian") {
+        return NextResponse.redirect(
+          new URL(
+            `/auth/redirect?to=${encodeURIComponent(LIBRARY_PORTAL_URL)}`,
+            nextUrl.origin
+          )
+        );
+      }
+      // Allows "admin" role to proceed
+    }
   }
 });
 

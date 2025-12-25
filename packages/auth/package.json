@@ -5,7 +5,8 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "next-auth": "^5.0.0-beta.30"
+    "next-auth": "^5.0.0-beta.30",
+    "@repo/database": "*"
   },
   "devDependencies": {
     "typescript": "^5",

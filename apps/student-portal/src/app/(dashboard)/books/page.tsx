@@ -1,0 +1,189 @@
+// Author: Udara Shanuka
+// Project: University-Portal
+// FP-ID: FP-20251223-US-BOOKS-PAGE
+// FP-HASH: HASH-PLACEHOLDER
+// Generated: 2025-12-25T10:55:00Z
+
+import { auth } from "@repo/auth";
+import { studentService, bookService, BookDTO } from "@repo/backend";
+import { redirect } from "next/navigation";
+import BooksSearch from "../../../components/dashboard/books/BooksSearch";
+import BorrowedBooksTable from "../../../components/dashboard/books/BorrowedBooksTable";
+import PendingBooksTable from "../../../components/dashboard/books/PendingBooksTable";
+import { BookOpen, Home } from "lucide-react";
+import Link from "next/link";
+import Pagination from "../../../components/dashboard/Pagination";
+
+const __FP_SIG = "FP-20251223-US-BOOKS-PAGE|HASH-PLACEHOLDER";
+
+/**
+ * Server Component: Books Page
+ *
+ * Displays the library books dashboard, acting as a central hub for library interactions.
+ *
+ * Capabilities:
+ * 1. Search: Queries the library catalog if a `query` param is present.
+ * 2. Overview: If no search is active, displays the user's personal library status (borrowed/pending).
+ *
+ * @param {Object} props - Component properties.
+ * @param {Object} props.searchParams - URL search parameters used for search queries and pagination state.
+ */
+export default async function BooksPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const session = await auth();
+  if (!session?.user?.email) {
+    return null;
+  }
+
+  const email = session.user.email;
+  const { query: queryParam } = await searchParams;
+  const query = typeof queryParam === "string" ? queryParam : undefined;
+
+  /* eslint-disable prefer-const */
+  let borrowedBooks: any[] = [];
+  let pendingBooks: any[] = []; // Mocking pending books
+  let searchResults: BookDTO[] = [];
+  let paginationMeta = { page: 1, totalPages: 1 };
+  /* eslint-enable prefer-const */
+
+  try {
+    if (query) {
+      // Search Mode:
+      // When a query exists, we switch context to "Library Catalog Search"
+      // avoiding personal book fetches to keep the view focused and performant.
+      const { query: queryParam, page: pageParam } = await searchParams;
+      const page = Number(pageParam) || 1;
+      const result = await bookService.searchBooks(query, page, 10);
+      searchResults = result.data;
+      paginationMeta = {
+        page: result.meta.page,
+        totalPages: result.meta.totalPages,
+      };
+    } else {
+      // Dashboard Mode:
+      // No query implies the user wants to see their own status.
+      // We fetch all records and filter client-side (or in-controller) for categorization.
+      const allBooks = await studentService.getBorrowedBooks(email);
+
+      // Separating books based on user requirements
+      // Pending: Borrowed, Overdue, or not Returned
+      pendingBooks = allBooks.filter((b) => {
+        const s = b.status?.toLowerCase();
+        return s === "borrowed" || s === "overdue";
+      });
+
+      // My Borrowed Books: History of returned books
+      borrowedBooks = allBooks.filter(
+        (b) => b.status?.toLowerCase() === "returned"
+      );
+    }
+  } catch (err) {
+    console.error("Failed to fetch books:", err);
+  }
+
+  return (
+    <div className="min-h-screen pb-12">
+      {/* Page Header */}
+      <header className="flex items-center justify-between mb-8 pt-6">
+        <div>
+          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-1">
+            <Home className="w-4 h-4" />
+            <span>/</span>
+            <span className="font-medium text-gray-900 dark:text-white">
+              Books
+            </span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white pt-4">
+            Books
+          </h1>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            View your books
+          </span>
+        </div>
+      </header>
+
+      <BooksSearch />
+
+      {query ? (
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center">
+            <span className="w-1.5 h-6 bg-primary rounded-full mr-3"></span>
+            Search Results for "{query}"
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {searchResults.length > 0 ? (
+              searchResults.map((book) => (
+                <Link
+                  key={book.id}
+                  href={`/books/${book.id}`}
+                  className="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all flex gap-4 group"
+                >
+                  <div className="h-24 w-16 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center flex-shrink-0 text-gray-400 group-hover:scale-105 transition-transform">
+                    {book.coverImage ? (
+                      <img
+                        src={book.coverImage}
+                        alt={book.title}
+                        className="h-full w-full object-cover rounded"
+                      />
+                    ) : (
+                      <BookOpen />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                      {book.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {book.author}
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          book.isAvailable
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                        }`}
+                      >
+                        {book.isAvailable ? "Available" : "Unavailable"}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <p className="text-gray-500 col-span-2">No books found.</p>
+            )}
+          </div>
+          {paginationMeta.totalPages > 1 && (
+            <Pagination
+              currentPage={paginationMeta.page}
+              totalPages={paginationMeta.totalPages}
+              basePath="/books"
+            />
+          )}
+        </section>
+      ) : (
+        <div className="space-y-10">
+          <section>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center">
+              <span className="w-1.5 h-6 bg-primary rounded-full mr-3"></span>
+              Pending Books
+            </h2>
+            <PendingBooksTable books={pendingBooks} />
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center">
+              <span className="w-1.5 h-6 bg-green-500 rounded-full mr-3"></span>
+              My Borrowed Books
+            </h2>
+            <BorrowedBooksTable books={borrowedBooks} />
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}

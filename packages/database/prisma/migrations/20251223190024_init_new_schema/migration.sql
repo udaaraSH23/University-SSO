@@ -41,6 +41,8 @@ CREATE TABLE "UserProfile" (
     "gpa" REAL,
     "email" TEXT NOT NULL,
     "academic_year" TEXT,
+    "current_study_year" INTEGER,
+    "enrollment_year" TEXT,
     CONSTRAINT "UserProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "UserProfile_degreeProgramId_fkey" FOREIGN KEY ("degreeProgramId") REFERENCES "DegreeProgram" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -53,8 +55,8 @@ CREATE TABLE "Course" (
     "name" TEXT NOT NULL,
     "credits" INTEGER NOT NULL,
     "description" TEXT,
-    "year_level" INTEGER NOT NULL,
-    "academic_year" TEXT NOT NULL,
+    "semester" INTEGER NOT NULL,
+    "offering_year" TEXT NOT NULL,
     CONSTRAINT "Course_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "Department" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -64,8 +66,9 @@ CREATE TABLE "Enrollment" (
     "userProfileId" INTEGER NOT NULL,
     "courseId" INTEGER NOT NULL,
     "semester" INTEGER NOT NULL,
+    "year_level_taken" INTEGER NOT NULL,
     "grade" TEXT,
-    "academic_year" TEXT NOT NULL,
+    "academic_year_taken" TEXT NOT NULL,
     CONSTRAINT "Enrollment_userProfileId_fkey" FOREIGN KEY ("userProfileId") REFERENCES "UserProfile" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Enrollment_courseId_fkey" FOREIGN KEY ("courseId") REFERENCES "Course" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );

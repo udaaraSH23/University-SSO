@@ -6,8 +6,9 @@
 
 "use client";
 
+import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
 const __FP_SIG = "FP-20251220-US-a9d8f7|HASH-PLACEHOLDER";
 
@@ -20,9 +21,30 @@ const __FP_SIG = "FP-20251220-US-a9d8f7|HASH-PLACEHOLDER";
  * @returns {JSX.Element} The rendered button component.
  */
 export function LoginButton() {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setIsLoading(true);
+    const forceFreshAuth =
+      typeof window !== "undefined" &&
+      localStorage.getItem("forceFreshAuth") === "true";
+
+    // Clear before use to ensure it's removed even if signIn redirects immediately
+    if (forceFreshAuth) {
+      localStorage.removeItem("forceFreshAuth");
+    }
+
+    await signIn(
+      "wso2",
+      { callbackUrl: "/" },
+      forceFreshAuth ? { prompt: "login" } : undefined
+    );
+  };
+
   return (
     <button
-      onClick={() => signIn("wso2", { callbackUrl: "/" })}
+      onClick={handleLogin}
+      disabled={isLoading}
       className="
         w-full flex items-center justify-center gap-2
         bg-gradient-to-r from-blue-600 to-purple-600 
@@ -35,11 +57,16 @@ export function LoginButton() {
         hover:shadow-xl hover:shadow-blue-500/40 dark:hover:shadow-blue-900/50
         transition-all duration-300 
         transform hover:scale-[1.02] active:scale-95
+        disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none
         group
       "
     >
-      <span>Get Started</span>
-      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+      <span>{isLoading ? "Connecting..." : "Get Started"}</span>
+      {isLoading ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+      )}
     </button>
   );
 }

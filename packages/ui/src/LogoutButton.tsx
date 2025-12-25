@@ -10,7 +10,7 @@
 
 const __FP_SIG = "FP-20251221-US-77a8b9|HASH-PLACEHOLDER";
 
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { LogOut } from "lucide-react";
 
 /**

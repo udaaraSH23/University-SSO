@@ -7,6 +7,7 @@
 // Generated: 2025-12-22T17:03:00Z
 
 import NextAuth from "next-auth";
+import { PrismaClient } from "@repo/database";
 
 /**
  * Signature constant for fingerprinting.
@@ -28,7 +29,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId: process.env.WSO2_CLIENT_ID,
       clientSecret: process.env.WSO2_CLIENT_SECRET,
       issuer: process.env.WSO2_ISSUER,
-      authorization: { params: { scope: "openid groups roles " } },
+      authorization: { params: { scope: "openid email groups profile roles" } },
       wellKnown: process.env.WSO2_WELL_KNOWN,
       profile(profile) {
         // Extract role from groups or roles claim
@@ -62,10 +63,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async signIn({ user }) {
-      if (!user.role) {
-        return false; // Deny access if no role is assigned
+      if (!user.email) {
+        return false;
       }
-      return true;
+
+      try {
+        const prisma = new PrismaClient();
+        const existingUser = await prisma.user.findUnique({
+          where: {
+            email: user.email,
+          },
+        });
+
+        await prisma.$disconnect();
+
+        if (!existingUser) {
+          console.log(
+            `User ${user.email} denied access: Not found in database.`
+          );
+          return false; // or return '/auth/error?error=AccessDenied'
+        }
+
+        return true;
+      } catch (error) {
+        console.error("Error validating user during sign in:", error);
+        return false;
+      }
     },
     async jwt({ token, account, user }) {
       if (account) {

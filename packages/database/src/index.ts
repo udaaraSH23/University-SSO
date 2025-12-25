@@ -11,4 +11,4 @@ const __FP_SIG = "FP-20251222-US-V2W3X4|HASH-PLACEHOLDER";
  *
  * Exports the Prisma client for database access.
  */
-export * from "@prisma/client";
+export { PrismaClient } from "@prisma/client";

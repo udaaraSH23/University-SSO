@@ -2,7 +2,7 @@
 // Project: University-Portal
 // FP-ID: FP-20251220-US-f6g7h8
 // FP-HASH: HASH-PLACEHOLDER
-// Generated: 2025-12-22T17:35:00Z
+// Generated: 2025-12-25T11:30:00Z
 
 import { auth } from "@repo/auth";
 import { NextResponse } from "next/server";

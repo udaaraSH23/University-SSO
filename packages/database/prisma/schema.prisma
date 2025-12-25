@@ -49,7 +49,9 @@ model UserProfile {
   description     String?
   gpa             Float?
   email           String
-  academic_year   String?
+  academic_year         String?
+  current_study_year    Int?
+  enrollment_year       String?
   user            User           @relation(fields: [userId], references: [id])
   degreeProgram   DegreeProgram? @relation(fields: [degreeProgramId], references: [id])
   enrollments     Enrollment[]
@@ -63,21 +65,22 @@ model Course {
   name          String
   credits       Int
   description   String?
-  year_level    Int
-  academic_year String
+  semester      Int
+  offering_year String
   department    Department   @relation(fields: [departmentId], references: [id])
   enrollments   Enrollment[]
 }
 
 model Enrollment {
-  id            Int         @id @default(autoincrement())
-  userProfileId Int
-  courseId      Int
-  semester      Int
-  grade         String?
-  academic_year String
-  userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
-  course        Course      @relation(fields: [courseId], references: [id])
+  id                  Int         @id @default(autoincrement())
+  userProfileId       Int
+  courseId            Int
+  semester            Int
+  year_level_taken    Int
+  grade               String?
+  academic_year_taken String
+  userProfile         UserProfile @relation(fields: [userProfileId], references: [id])
+  course              Course      @relation(fields: [courseId], references: [id])
 }
 
 model Book {

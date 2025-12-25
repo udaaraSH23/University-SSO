@@ -2,7 +2,7 @@
 // Project: University-Portal
 // FP-ID: FP-20251222-US-I1J2K3
 // FP-HASH: HASH-PLACEHOLDER
-// Generated: 2025-12-22T22:50:00Z
+// Generated: 2025-12-25T11:05:00Z
 
 import { LoginButton } from "@repo/ui";
 import { GraduationCap, ShieldCheck } from "lucide-react";
