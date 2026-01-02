@@ -26,9 +26,9 @@ interface ProfileData {
   degreeProgram: string;
   email: string;
   gpa: number;
-  currentStudyYear: number;
-  academicYear: string;
-  enrollmentYear: number | string;
+  level: number;
+  currentAcademicYear: string;
+  isLibraryRegistered: boolean;
 }
 
 interface ProfileViewProps {
@@ -195,10 +195,10 @@ export default function ProfileView({ profile }: ProfileViewProps) {
           </div>
           <div>
             <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
-              Year {profile.currentStudyYear}
+              Year {profile.level}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Current Study Year
+              Current Level
             </div>
           </div>
         </motion.div>
@@ -219,7 +219,7 @@ export default function ProfileView({ profile }: ProfileViewProps) {
           </div>
           <div>
             <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {profile.academicYear}
+              {profile.currentAcademicYear}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               Academic Year
@@ -227,26 +227,34 @@ export default function ProfileView({ profile }: ProfileViewProps) {
           </div>
         </motion.div>
 
-        {/* Enrollment Card */}
+        {/* Enrollment Card Removed as enrollmentYear is no longer in DTO */}
+
+        {/* Library Status Card */}
         <motion.div
           variants={cardVariants}
           whileHover="hover"
           className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between group hover:shadow-md transition-shadow"
         >
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-orange-50 dark:bg-orange-900/30 rounded-xl text-orange-600 dark:text-orange-400">
+            <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
               <BookOpen className="w-6 h-6" />
             </div>
             <span className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 tracking-wider">
-              History
+              Library
             </span>
           </div>
           <div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {profile.enrollmentYear}
+            <div
+              className={`text-2xl font-bold mb-1 ${
+                profile.isLibraryRegistered
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-500 dark:text-red-400"
+              }`}
+            >
+              {profile.isLibraryRegistered ? "Registered" : "Not Registered"}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Enrolled Since
+              Membership Status
             </div>
           </div>
         </motion.div>

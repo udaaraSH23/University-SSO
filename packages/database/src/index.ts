@@ -9,6 +9,9 @@ const __FP_SIG = "FP-20251222-US-V2W3X4|HASH-PLACEHOLDER";
 /**
  * Database Package.
  *
- * Exports the Prisma client for database access.
+ * Exports the Prisma client singleton and types.
+ * We export from "./client" to ensure the singleton pattern is used.
  */
-export { PrismaClient } from "@prisma/client";
+export * from "./client";
+export { default } from "./client";
+export * from "./zod";

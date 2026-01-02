@@ -4,7 +4,7 @@
 // FP-HASH: HASH-PLACEHOLDER
 // Generated: 2025-12-25T11:00:00Z
 
-import { Home } from "lucide-react";
+import { DashboardHeader } from "@repo/ui";
 import CourseFilter from "../../../components/dashboard/courses/CourseFilter";
 import CourseGrid from "../../../components/dashboard/courses/CourseGrid";
 import { auth } from "@repo/auth";
@@ -80,23 +80,11 @@ export default async function CoursesPage({
   return (
     <div className="min-h-screen">
       {/* Page Header with Breadcrumbs */}
-      <header className="flex items-center justify-between mb-8 pt-6">
-        <div>
-          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-1">
-            <Home className="w-4 h-4" />
-            <span>/</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              Courses
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white pt-4">
-            Courses
-          </h1>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            Your courses provide a quick overview of your academic activities.
-          </span>
-        </div>
-      </header>
+      <DashboardHeader
+        title="Courses"
+        description="Your courses provide a quick overview of your academic activities."
+        breadcrumb={[{ label: "Courses" }]}
+      />
 
       <div className="max-w-7xl mx-auto w-full">
         {/* Filtering Options (Year, Semester) */}

@@ -5,14 +5,14 @@
 // Generated: 2025-12-25T10:55:00Z
 
 import { auth } from "@repo/auth";
-import { studentService, bookService, BookDTO } from "@repo/backend";
-import { redirect } from "next/navigation";
+import { studentService, bookReader, BookDTO } from "@repo/backend";
+
 import BooksSearch from "../../../components/dashboard/books/BooksSearch";
 import BorrowedBooksTable from "../../../components/dashboard/books/BorrowedBooksTable";
 import PendingBooksTable from "../../../components/dashboard/books/PendingBooksTable";
-import { BookOpen, Home } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import Link from "next/link";
-import Pagination from "../../../components/dashboard/Pagination";
+import { Pagination, DashboardHeader } from "@repo/ui";
 
 const __FP_SIG = "FP-20251223-US-BOOKS-PAGE|HASH-PLACEHOLDER";
 
@@ -42,6 +42,14 @@ export default async function BooksPage({
   const { query: queryParam } = await searchParams;
   const query = typeof queryParam === "string" ? queryParam : undefined;
 
+  let profile;
+  try {
+    profile = await studentService.getProfile(email);
+  } catch (error) {
+    console.error("Failed to fetch profile", error);
+    return <div>Error loading profile.</div>;
+  }
+
   /* eslint-disable prefer-const */
   let borrowedBooks: any[] = [];
   let pendingBooks: any[] = []; // Mocking pending books
@@ -56,7 +64,7 @@ export default async function BooksPage({
       // avoiding personal book fetches to keep the view focused and performant.
       const { query: queryParam, page: pageParam } = await searchParams;
       const page = Number(pageParam) || 1;
-      const result = await bookService.searchBooks(query, page, 10);
+      const result = await bookReader.searchBooks(query, page, 10);
       searchResults = result.data;
       paginationMeta = {
         page: result.meta.page,
@@ -87,23 +95,12 @@ export default async function BooksPage({
   return (
     <div className="min-h-screen pb-12">
       {/* Page Header */}
-      <header className="flex items-center justify-between mb-8 pt-6">
-        <div>
-          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-1">
-            <Home className="w-4 h-4" />
-            <span>/</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              Books
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white pt-4">
-            Books
-          </h1>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            View your books
-          </span>
-        </div>
-      </header>
+      {/* Page Header */}
+      <DashboardHeader
+        title="Books"
+        description="View your books"
+        breadcrumb={[{ label: "Books" }]}
+      />
 
       <BooksSearch />
 
@@ -165,7 +162,7 @@ export default async function BooksPage({
             />
           )}
         </section>
-      ) : (
+      ) : profile.isLibraryRegistered ? (
         <div className="space-y-10">
           <section>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center">
@@ -182,6 +179,17 @@ export default async function BooksPage({
             </h2>
             <BorrowedBooksTable books={borrowedBooks} />
           </section>
+        </div>
+      ) : (
+        <div className="mt-8 p-8 bg-surface-light dark:bg-surface-dark border border-dashed border-gray-300 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center text-center">
+          <BookOpen className="w-12 h-12 text-gray-400 mb-3" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Library Registration Required
+          </h3>
+          <p className="text-gray-500 max-w-sm mt-2">
+            You need to complete your library registration to view your
+            borrowing history and pending requests. Search is still available.
+          </p>
         </div>
       )}
     </div>

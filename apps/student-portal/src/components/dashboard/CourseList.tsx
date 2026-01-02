@@ -17,7 +17,7 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-import Pagination from "./Pagination";
+import { Pagination } from "@repo/ui";
 
 const __FP_SIG = "FP-20251223-US-J0K1L2|HASH-PLACEHOLDER";
 

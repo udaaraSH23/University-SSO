@@ -9,78 +9,117 @@ datasource db {
 
 model Faculty {
   id          Int          @id @default(autoincrement())
-  name        String
+  name        String       @unique
   description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   departments Department[]
 }
 
 model Department {
   id             Int             @id @default(autoincrement())
   facultyId      Int
-  name           String
+  name           String          @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   faculty        Faculty         @relation(fields: [facultyId], references: [id])
   degreePrograms DegreeProgram[]
   courses        Course[]
 }
 
 model DegreeProgram {
-  id           Int           @id @default(autoincrement())
-  departmentId Int
-  name         String
-  department   Department    @relation(fields: [departmentId], references: [id])
-  userProfiles UserProfile[]
+  id                 Int              @id @default(autoincrement())
+  departmentId       Int
+  name               String           @unique
+  intakeAcademicYear String // "2024-2025"
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  department         Department       @relation(fields: [departmentId], references: [id])
+  studentProfiles    StudentProfile[]
+
+  @@unique([name, intakeAcademicYear])
 }
 
 model User {
-  id          Int          @id @default(autoincrement())
-  username    String       @unique
-  email       String       @unique
-  role        String
-  wso2_id     String       @unique
-  userProfile UserProfile?
+  id             Int             @id @default(autoincrement())
+  username       String          @unique
+  email          String          @unique
+  role           String // Enum Role
+  wso2_id        String          @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  studentProfile StudentProfile?
+  staffProfile   StaffProfile?
 }
 
-model UserProfile {
-  id              Int            @id @default(autoincrement())
-  userId          Int            @unique
-  degreeProgramId Int?
-  student_id      String?        @unique
-  full_name       String
-  description     String?
-  gpa             Float?
-  email           String
-  academic_year         String?
-  current_study_year    Int?
-  enrollment_year       String?
-  user            User           @relation(fields: [userId], references: [id])
-  degreeProgram   DegreeProgram? @relation(fields: [degreeProgramId], references: [id])
-  enrollments     Enrollment[]
-  borrowRecords   BorrowRecord[]
+model StaffProfile {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  staffType String // Enum StaffType
+  fullName  String
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model StudentProfile {
+  id                  Int            @id @default(autoincrement())
+  userId              Int            @unique
+  degreeProgramId     Int
+  student_id          String         @unique
+  full_name           String
+  description         String?
+  gpa                 Float?
+  currentAcademicYear String // "2025-2026"
+  level               Int // 1, 2, 3, 4
+  isLibraryRegistered Boolean        @default(false)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  user                User           @relation(fields: [userId], references: [id])
+  degreeProgram       DegreeProgram  @relation(fields: [degreeProgramId], references: [id])
+  enrollments         Enrollment[]
+  borrowRecords       BorrowRecord[]
 }
 
 model Course {
-  id            Int          @id @default(autoincrement())
-  departmentId  Int
-  code          String       @unique
-  name          String
-  credits       Int
-  description   String?
-  semester      Int
-  offering_year String
-  department    Department   @relation(fields: [departmentId], references: [id])
-  enrollments   Enrollment[]
+  id              Int              @id @default(autoincrement())
+  departmentId    Int
+  code            String           @unique
+  name            String
+  credits         Int
+  description     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  department      Department       @relation(fields: [departmentId], references: [id])
+  courseOfferings CourseOffering[]
+}
+
+model CourseOffering {
+  id           Int          @id @default(autoincrement())
+  courseId     Int
+  academicYear String // "2024-2025"
+  semester     Int // 1 or 2
+  level        Int // 1, 2, 3, 4
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  course       Course       @relation(fields: [courseId], references: [id])
+  enrollments  Enrollment[]
+
+  @@unique([courseId, academicYear, semester])
 }
 
 model Enrollment {
-  id                  Int         @id @default(autoincrement())
-  userProfileId       Int
-  courseId            Int
-  semester            Int
-  year_level_taken    Int
-  grade               String?
-  academic_year_taken String
-  userProfile         UserProfile @relation(fields: [userProfileId], references: [id])
-  course              Course      @relation(fields: [courseId], references: [id])
+  id               Int            @id @default(autoincrement())
+  studentProfileId Int
+  courseOfferingId Int
+  grade            String? // Enum Grade
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id])
+  courseOffering   CourseOffering @relation(fields: [courseOfferingId], references: [id])
+
+  @@unique([studentProfileId, courseOfferingId])
 }
 
 model Book {
@@ -91,18 +130,26 @@ model Book {
   total_copies     Int
   available_copies Int
   description      String?
+  coverUrl         String?
+  genre            String?
+  publisher        String?
+  language         String?        @default("English")
   year             Int
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
   borrowRecords    BorrowRecord[]
 }
 
 model BorrowRecord {
-  id            Int         @id @default(autoincrement())
-  userProfileId Int
-  bookId        Int
-  borrow_date   DateTime    @default(now())
-  due_date      DateTime
-  return_date   DateTime?
-  status        String
-  userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
-  book          Book        @relation(fields: [bookId], references: [id])
+  id               Int            @id @default(autoincrement())
+  studentProfileId Int
+  bookId           Int
+  borrow_date      DateTime       @default(now())
+  due_date         DateTime
+  return_date      DateTime?
+  status           String // Enum BorrowStatus
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id])
+  book             Book           @relation(fields: [bookId], references: [id])
 }

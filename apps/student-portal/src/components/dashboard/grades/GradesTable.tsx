@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import Pagination from "../Pagination";
+import { Pagination } from "@repo/ui";
 
 interface GradeItem {
   courseCode: string;

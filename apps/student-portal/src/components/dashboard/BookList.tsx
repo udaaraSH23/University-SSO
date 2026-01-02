@@ -48,12 +48,16 @@ interface BookListProps {
     dueDate: Date;
     status: string;
   }>;
+  isLibraryRegistered?: boolean;
 }
 
 /**
  * Component listing library books.
  */
-export default function BookList({ books }: BookListProps) {
+export default function BookList({
+  books,
+  isLibraryRegistered = true,
+}: BookListProps) {
   return (
     <motion.div
       variants={container}
@@ -67,7 +71,25 @@ export default function BookList({ books }: BookListProps) {
           Pending Books
         </h2>
       </div>
-      {books.length === 0 ? (
+
+      {!isLibraryRegistered ? (
+        <div className="bg-red-50 dark:bg-red-900/10 rounded-2xl p-8 border border-red-100 dark:border-red-900/30 text-center">
+          <BookOpen className="w-12 h-12 text-red-400 mx-auto mb-3" />
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-300">
+            Library Registration Required
+          </h3>
+          <p className="text-red-600 dark:text-red-400 mt-1 max-w-sm mx-auto text-sm">
+            You need to complete your library registration to borrow books and
+            view pending requests.
+          </p>
+          <Link
+            href="/profile"
+            className="inline-block mt-4 text-sm font-medium text-red-700 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200 underline"
+          >
+            Check Profile
+          </Link>
+        </div>
+      ) : books.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400">
           No pending books.
         </div>

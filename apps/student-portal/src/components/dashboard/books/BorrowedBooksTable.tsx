@@ -13,7 +13,7 @@ import { BorrowedBookDTO } from "@repo/backend";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import Pagination from "../Pagination";
+import { Pagination } from "@repo/ui";
 
 interface BorrowedBooksTableProps {
   books: BorrowedBookDTO[];
@@ -86,7 +86,7 @@ export default function BorrowedBooksTable({ books }: BorrowedBooksTableProps) {
           {paginatedBooks.map((book) => {
             return (
               <motion.div
-                key={book.bookId}
+                key={book.recordId}
                 layout
                 variants={rowVariants}
                 className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-default"

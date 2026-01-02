@@ -1,0 +1,1 @@
+import{j as i}from"./iframe-C4GIvfZT.js";const s=({children:e,href:r,...t})=>i.jsx("a",{href:r,...t,children:e});s.__docgenInfo={description:"",methods:[],displayName:"Link",props:{href:{required:!0,tsType:{name:"string"},description:""},children:{required:!0,tsType:{name:"ReactNode"},description:""}}};export{s as L};

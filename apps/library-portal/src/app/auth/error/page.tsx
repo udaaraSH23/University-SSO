@@ -8,8 +8,13 @@
 
 const __FP_SIG = "FP-20251222-US-G1H2I3|HASH-PLACEHOLDER";
 
+import { Suspense } from "react";
 import { AuthErrorCard } from "@repo/ui";
 
 export default function AuthErrorPage() {
-  return <AuthErrorCard />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthErrorCard />
+    </Suspense>
+  );
 }

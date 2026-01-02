@@ -37,5 +37,8 @@ yarn-error.log*
 next-env.d.ts
 
 /Docs and WorkFlow/
+/.turbo
+/.scannerwork
+/.agent
 
 

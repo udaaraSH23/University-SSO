@@ -1,0 +1,1 @@
+import{j as r}from"./iframe-C4GIvfZT.js";function e(){return r.jsx("footer",{className:"mt-auto py-8 text-center text-sm text-gray-400 border-t border-gray-100 dark:border-gray-800/50",children:r.jsx("p",{children:"© 2025 University Portal System. All rights reserved."})})}e.__docgenInfo={description:"",methods:[],displayName:"DashboardFooter"};export{e as D};

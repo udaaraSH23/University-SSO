@@ -4,13 +4,12 @@
 // FP-HASH: HASH-PLACEHOLDER
 // Generated: 2025-12-25T10:55:00Z
 
-import { Home, LogOut } from "lucide-react";
 import GradesFilter from "../../../components/dashboard/grades/GradesFilter";
 import GradesTable from "../../../components/dashboard/grades/GradesTable";
 import { auth } from "@repo/auth";
 import { studentService, GradeDTO } from "@repo/backend";
 import { redirect } from "next/navigation";
-import { LogoutButton } from "@repo/ui";
+import { DashboardHeader } from "@repo/ui";
 
 const __FP_SIG = "FP-20251223-US-M8N9O0|HASH-PLACEHOLDER";
 
@@ -118,23 +117,12 @@ export default async function GradesPage({
   return (
     <div className="min-h-screen">
       {/* Page Header */}
-      <header className="flex items-center justify-between mb-8 pt-6">
-        <div>
-          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-1">
-            <Home className="w-4 h-4" />
-            <span>/</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              Grades
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white pt-4">
-            Grades
-          </h1>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            View your academic performance history.
-          </span>
-        </div>
-      </header>
+      {/* Page Header */}
+      <DashboardHeader
+        title="Grades"
+        description="View your academic performance history."
+        breadcrumb={[{ label: "Grades" }]}
+      />
 
       <div className="max-w-5xl mx-auto w-full">
         <GradesFilter />

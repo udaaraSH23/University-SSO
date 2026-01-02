@@ -5,7 +5,7 @@
 // Generated: 2025-12-25T10:55:00Z
 
 import { auth } from "@repo/auth";
-import { bookService } from "@repo/backend";
+import { bookReader } from "@repo/backend";
 import { MoveLeft, BookOpen, LogOut } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -34,7 +34,7 @@ export default async function BookDetailsPage({
   }
 
   const { id } = await params;
-  const book = await bookService.getBookDetails(id);
+  const book = await bookReader.getBookDetails(id);
 
   if (!book) {
     return (

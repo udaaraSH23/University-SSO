@@ -83,8 +83,8 @@ export default function CourseGrid({ courses }: CourseGridProps) {
     };
 
     // Check if year is a number or string number
-    const yearNum = parseInt(course.year);
-    const yearDisplay = !isNaN(yearNum) ? ordinal(yearNum) : course.year;
+    const yearNum = course.level; // course.level is already a number
+    const yearDisplay = ordinal(yearNum);
 
     const semDisplay =
       course.semester === 9 ? "Summer" : ordinal(course.semester);

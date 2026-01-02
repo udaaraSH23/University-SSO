@@ -16,7 +16,7 @@ import BookList from "../../components/dashboard/BookList";
 import { auth } from "@repo/auth";
 import { dashboardService } from "@repo/backend";
 import { redirect } from "next/navigation";
-import { Home } from "lucide-react";
+import { DashboardHeader } from "@repo/ui";
 import { createLogger } from "@repo/logger";
 
 const logger = createLogger({ service: "student-portal" });
@@ -65,12 +65,12 @@ export default async function DashboardPage() {
     : 0;
 
   // Transform Data for Components
-  const currentYear = profile?.currentStudyYear?.toString() || "1";
+  const currentLevel = profile?.level || 1;
 
   // 1. Filter by Current Study Year
   // We only show courses relevant to what the student is studying *now*.
   const yearCourses = courses
-    ? courses.filter((c) => c.year === currentYear)
+    ? courses.filter((c) => c.level === currentLevel)
     : [];
 
   // 2. Determine Logic for Semester (Prioritize 2 over 1)
@@ -112,24 +112,12 @@ export default async function DashboardPage() {
   return (
     <>
       {/* Page Header with Breadcrumbs */}
-      <header className="flex items-center justify-between mb-8 pt-6">
-        <div>
-          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-1">
-            <Home className="w-4 h-4" />
-            <span>/</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              Dashboard
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white pt-4">
-            Dashboard
-          </h1>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            Your dashboard provides a quick overview of your academic and
-            library activities.
-          </span>
-        </div>
-      </header>
+      <DashboardHeader
+        title="Dashboard"
+        description="Your dashboard provides a quick overview of your academic and library activities."
+        showHomeIcon={true}
+        breadcrumb={[{ label: "Dashboard" }]}
+      />
 
       <StatsCards
         gpa={gpa}
@@ -138,10 +126,13 @@ export default async function DashboardPage() {
       />
       <CourseList
         courses={courseList}
-        year={currentYear}
+        year={currentLevel.toString()}
         semester={targetSemester}
       />
-      <BookList books={bookList.slice(0, 5)} />
+      <BookList
+        books={bookList.slice(0, 5)}
+        isLibraryRegistered={profile?.isLibraryRegistered ?? false}
+      />
     </>
   );
 }

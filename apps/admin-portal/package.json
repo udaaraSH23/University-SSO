@@ -9,16 +9,19 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@repo/auth": "*",
+    "@repo/tailwind-config": "*",
+    "@repo/ui": "*",
+    "framer-motion": "^11.0.0",
+    "lodash.debounce": "^4.0.8",
     "next": "16.1.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "framer-motion": "^11.0.0",
-    "@repo/auth": "*",
-    "@repo/ui": "*",
-    "@repo/tailwind-config": "*"
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

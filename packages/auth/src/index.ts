@@ -7,7 +7,11 @@
 // Generated: 2025-12-22T17:03:00Z
 
 import NextAuth from "next-auth";
-import { PrismaClient } from "@repo/database";
+// Use the shared Prisma singleton from @repo/database to avoid connection exhaustion
+import prisma from "@repo/database";
+import { createLogger } from "@repo/logger";
+
+const logger = createLogger({ service: "auth" });
 
 /**
  * Signature constant for fingerprinting.
@@ -63,22 +67,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async signIn({ user }) {
+      logger.info({ user }, "user");
       if (!user.email) {
         return false;
       }
 
+      logger.info("finding existing email");
+
       try {
-        const prisma = new PrismaClient();
         const existingUser = await prisma.user.findUnique({
           where: {
             email: user.email,
           },
         });
-
-        await prisma.$disconnect();
+        logger.info({ existingUser }, "existing user");
 
         if (!existingUser) {
-          console.log(
+          logger.warn(
+            { email: user.email },
             `User ${user.email} denied access: Not found in database.`
           );
           return false; // or return '/auth/error?error=AccessDenied'
@@ -86,7 +92,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         return true;
       } catch (error) {
-        console.error("Error validating user during sign in:", error);
+        logger.error({ error }, "Error validating user during sign in");
         return false;
       }
     },

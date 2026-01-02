@@ -4,9 +4,12 @@ const prisma = new PrismaClient();
 
 async function main() {
   // 0. Delete existing data (respecting foreign key constraints)
+  console.log("Cleaning database...");
   await prisma.borrowRecord.deleteMany();
   await prisma.enrollment.deleteMany();
-  await prisma.userProfile.deleteMany();
+  await prisma.courseOffering.deleteMany();
+  await prisma.studentProfile.deleteMany();
+  await prisma.staffProfile.deleteMany();
   await prisma.book.deleteMany();
   await prisma.course.deleteMany();
   await prisma.user.deleteMany();
@@ -14,7 +17,10 @@ async function main() {
   await prisma.department.deleteMany();
   await prisma.faculty.deleteMany();
 
+  console.log("Database cleaned.");
+
   // 1. Create Faculties
+  console.log("Creating Faculties...");
   const computingFaculty = await prisma.faculty.create({
     data: {
       name: "Faculty of Computing",
@@ -23,6 +29,7 @@ async function main() {
   });
 
   // 2. Create Departments
+  console.log("Creating Departments...");
   const csDepartment = await prisma.department.create({
     data: {
       name: "Computer Science",
@@ -38,10 +45,12 @@ async function main() {
   });
 
   // 3. Create Degree Programs
+  console.log("Creating Degree Programs...");
   const csDegree = await prisma.degreeProgram.create({
     data: {
       name: "BSc Computer Science",
       departmentId: csDepartment.id,
+      intakeAcademicYear: "2024-2025",
     },
   });
 
@@ -49,10 +58,13 @@ async function main() {
     data: {
       name: "BSc Information Systems",
       departmentId: isDepartment.id,
+      intakeAcademicYear: "2024-2025",
     },
   });
 
-  // 4. Create Users and UserProfiles
+  // 4. Create Users and Profiles
+  console.log("Creating Users...");
+
   // Admin
   await prisma.user.create({
     data: {
@@ -60,62 +72,56 @@ async function main() {
       email: "admin@university.com",
       role: "ADMIN",
       wso2_id: "admin-oidc-id",
-      userProfile: {
+      staffProfile: {
         create: {
-          full_name: "System Administrator",
-          email: "admin@university.com",
+          fullName: "System Administrator",
+          staffType: "ADMIN",
         },
       },
     },
   });
 
-  // Student 1
+  // Student 1 (CS)
   const student1 = await prisma.user.create({
     data: {
       username: "jdoe",
       email: "jdoe@student.university.com",
       role: "STUDENT",
       wso2_id: "student1-oidc-id",
-      userProfile: {
+      studentProfile: {
         create: {
           student_id: "S1001",
           full_name: "John Doe",
           degreeProgramId: csDegree.id,
-          email: "jdoe@student.university.com",
-          gpa: 3.8,
-          academic_year: "2025",
-          current_study_year: 1,
-          enrollment_year: "2024",
+          currentAcademicYear: "2025-2026",
+          level: 2, // Year 2
         },
       },
     },
     include: {
-      userProfile: true,
+      studentProfile: true,
     },
   });
 
-  // Student 2
+  // Student 2 (IS)
   const student2 = await prisma.user.create({
     data: {
       username: "asmith",
       email: "asmith@student.university.com",
       role: "STUDENT",
       wso2_id: "student2-oidc-id",
-      userProfile: {
+      studentProfile: {
         create: {
           student_id: "S1002",
           full_name: "Alice Smith",
           degreeProgramId: isDegree.id,
-          email: "asmith@student.university.com",
-          gpa: 3.9,
-          academic_year: "2025",
-          current_study_year: 1,
-          enrollment_year: "2024",
+          currentAcademicYear: "2025-2026",
+          level: 2, // Year 2
         },
       },
     },
     include: {
-      userProfile: true,
+      studentProfile: true,
     },
   });
 
@@ -126,151 +132,107 @@ async function main() {
       email: "lib@university.com",
       role: "LIBRARIAN",
       wso2_id: "librarian-oidc-id",
-      userProfile: {
+      staffProfile: {
         create: {
-          full_name: "Librarian User",
-          email: "lib@university.com",
+          fullName: "Librarian User",
+          staffType: "LIBRARIAN",
         },
       },
     },
   });
 
   // 5. Create Courses
+  console.log("Creating Courses...");
   const courseData = [
-    // Year 1
+    // Year 1 CS
     {
       code: "CS101",
       name: "Intro to Programming",
       credits: 3,
       dept: csDepartment,
-      sem: 1,
     },
-    {
-      code: "CS102",
-      name: "Digital Logic",
-      credits: 3,
-      dept: csDepartment,
-      sem: 2,
-    },
+    { code: "CS102", name: "Digital Logic", credits: 3, dept: csDepartment },
+    // Year 1 IS
     {
       code: "IS101",
       name: "Intro to Information Systems",
       credits: 3,
       dept: isDepartment,
-      sem: 1,
     },
     {
       code: "IS102",
       name: "Business Processes",
       credits: 3,
       dept: isDepartment,
-      sem: 2,
     },
-    // Year 2
-    {
-      code: "CS201",
-      name: "Data Structures",
-      credits: 4,
-      dept: csDepartment,
-      sem: 1,
-    },
+    // Year 2 CS
+    { code: "CS201", name: "Data Structures", credits: 4, dept: csDepartment },
     {
       code: "CS202",
       name: "Operating Systems",
       credits: 3,
       dept: csDepartment,
-      sem: 2,
     },
     {
-      code: "IS201",
-      name: "Database Systems",
+      code: "CS203",
+      name: "Advanced Algorithms",
       credits: 3,
-      dept: isDepartment,
-      sem: 1,
+      dept: csDepartment,
     },
+    // Year 2 IS
+    { code: "IS201", name: "Database Systems", credits: 3, dept: isDepartment },
+    { code: "IS202", name: "Systems Analysis", credits: 3, dept: isDepartment },
     {
-      code: "IS202",
-      name: "Systems Analysis",
+      code: "IS203",
+      name: "Human Computer Interaction",
       credits: 3,
       dept: isDepartment,
-      sem: 2,
     },
-    // Year 3
+    // Year 3 CS
     {
       code: "CS301",
       name: "Software Engineering",
       credits: 3,
       dept: csDepartment,
-      sem: 1,
     },
     {
       code: "CS302",
       name: "Computer Networks",
       credits: 3,
       dept: csDepartment,
-      sem: 2,
     },
+    // Year 3 IS
     {
       code: "IS301",
       name: "Enterprise Architecture",
       credits: 3,
       dept: isDepartment,
-      sem: 1,
     },
     {
       code: "IS302",
       name: "IT Project Management",
       credits: 3,
       dept: isDepartment,
-      sem: 2,
     },
-    // Year 4
+    // Year 4 CS
     {
       code: "CS401",
       name: "Artificial Intelligence",
       credits: 4,
       dept: csDepartment,
-      sem: 1,
     },
     {
       code: "CS402",
       name: "Distributed Systems",
       credits: 3,
       dept: csDepartment,
-      sem: 2,
     },
-    {
-      code: "IS401",
-      name: "IS Strategy",
-      credits: 3,
-      dept: isDepartment,
-      sem: 1,
-    },
-    {
-      code: "IS402",
-      name: "Dissertation",
-      credits: 6,
-      dept: isDepartment,
-      sem: 2,
-    },
-    // Summer/Semester 3 & 4 (Added for completeness)
-    {
-      code: "CS203",
-      name: "Advanced Algorithms",
-      credits: 3,
-      dept: csDepartment,
-      sem: 3,
-    },
-    {
-      code: "IS203",
-      name: "Human Computer Interaction",
-      credits: 3,
-      dept: isDepartment,
-      sem: 4,
-    },
+    // Year 4 IS
+    { code: "IS401", name: "IS Strategy", credits: 3, dept: isDepartment },
+    { code: "IS402", name: "Dissertation", credits: 6, dept: isDepartment },
   ];
 
-  const createdCourses: any = {};
+  const createdCourses: Record<string, any> = {};
 
   for (const c of courseData) {
     createdCourses[c.code] = await prisma.course.create({
@@ -279,60 +241,163 @@ async function main() {
         name: c.name,
         credits: c.credits,
         departmentId: c.dept.id,
-        semester: c.sem,
-        offering_year: "2025",
       },
     });
   }
 
-  // 6. Enrollments
-  const enrollments = [
-    // Student 1 (CS)
-    {
-      student: student1,
-      items: [
-        { code: "CS101", year: 1, sem: 1, grade: "A" },
-        { code: "CS102", year: 1, sem: 2, grade: "B+" },
-        { code: "CS201", year: 2, sem: 1, grade: "A-" },
-        { code: "CS202", year: 2, sem: 2, grade: "B" },
-        { code: "CS301", year: 3, sem: 1, grade: "A" },
-        { code: "CS203", year: 2, sem: 3, grade: "A" },
-      ],
-    },
-    // Student 2 (IS)
-    {
-      student: student2,
-      items: [
-        { code: "IS101", year: 1, sem: 1, grade: "A-" },
-        { code: "IS102", year: 1, sem: 2, grade: "A" },
-        { code: "IS201", year: 2, sem: 1, grade: "B" },
-        { code: "IS202", year: 2, sem: 2, grade: "B+" },
-        { code: "IS301", year: 3, sem: 1, grade: "A" },
-        { code: "IS203", year: 2, sem: 4, grade: "B" },
-      ],
-    },
-  ];
+  // 6. Create Course Offerings
+  console.log("Creating Course Offerings...");
 
-  for (const e of enrollments) {
-    if (e.student.userProfile) {
-      for (const item of e.items) {
-        const course = createdCourses[item.code];
+  // Helper to create offerings
+  const createOfferings = async (academicYear: string) => {
+    const offerings: any[] = [];
 
-        await prisma.enrollment.create({
-          data: {
-            userProfileId: e.student.userProfile.id,
-            courseId: course.id,
-            year_level_taken: item.year,
-            semester: item.sem,
-            grade: item.grade,
-            academic_year_taken: "2025",
-          },
-        });
-      }
+    // Y1, Sem 1
+    offerings.push({ code: "CS101", sem: 1, level: 1 });
+    offerings.push({ code: "IS101", sem: 1, level: 1 });
+    // Y1, Sem 2
+    offerings.push({ code: "CS102", sem: 2, level: 1 });
+    offerings.push({ code: "IS102", sem: 2, level: 1 });
+
+    // Y2, Sem 1
+    offerings.push({ code: "CS201", sem: 1, level: 2 });
+    offerings.push({ code: "IS201", sem: 1, level: 2 });
+    // Y2, Sem 2
+    offerings.push({ code: "CS202", sem: 2, level: 2 });
+    offerings.push({ code: "IS202", sem: 2, level: 2 });
+    // Y2, Sem 3 or 4 (Summer/Special) - let's map them to Sem 2 for simplicity or keep as is if model supports > 2
+    // The schema says semester Int, but common logic is 1 or 2. Let's stick to 1/2 for main, maybe 3 for summer.
+    offerings.push({ code: "CS203", sem: 2, level: 2 });
+    offerings.push({ code: "IS203", sem: 2, level: 2 });
+
+    // Y3
+    offerings.push({ code: "CS301", sem: 1, level: 3 });
+    offerings.push({ code: "IS301", sem: 1, level: 3 });
+
+    for (const off of offerings) {
+      await prisma.courseOffering.create({
+        data: {
+          courseId: createdCourses[off.code].id,
+          academicYear: academicYear,
+          semester: off.sem,
+          level: off.level,
+        },
+      });
     }
+  };
+
+  // Create offerings for previous year and current year
+  await createOfferings("2024-2025");
+  await createOfferings("2025-2026");
+
+  // 7. Enrollments
+  console.log("Creating Enrollments...");
+
+  // Helper to find offering
+  const findOffering = async (
+    code: string,
+    academicYear: string,
+    semester: number
+  ) => {
+    const course = createdCourses[code];
+    return prisma.courseOffering.findFirst({
+      where: {
+        courseId: course.id,
+        academicYear,
+        semester,
+      },
+    });
+  };
+
+  // Student 1 (CS) History
+  if (student1.studentProfile) {
+    const s1Id = student1.studentProfile.id;
+
+    // Completed Year 1
+    const s1y1sem1 = await findOffering("CS101", "2024-2025", 1);
+    const s1y1sem2 = await findOffering("CS102", "2024-2025", 2);
+
+    if (s1y1sem1)
+      await prisma.enrollment.create({
+        data: {
+          studentProfileId: s1Id,
+          courseOfferingId: s1y1sem1.id,
+          grade: "A",
+        },
+      });
+    if (s1y1sem2)
+      await prisma.enrollment.create({
+        data: {
+          studentProfileId: s1Id,
+          courseOfferingId: s1y1sem2.id,
+          grade: "B+",
+        },
+      });
+
+    // Current Year 2 (Enrolled)
+    const s1y2sem1 = await findOffering("CS201", "2025-2026", 1);
+    if (s1y2sem1)
+      await prisma.enrollment.create({
+        data: {
+          studentProfileId: s1Id,
+          courseOfferingId: s1y2sem1.id,
+          grade: "A-",
+        },
+      }); // Completed recently? Or currently doing? If grade exists, likely completed or interim.
+
+    // Ongoing/Future
+    const s1y2sem2 = await findOffering("CS202", "2025-2026", 2);
+    if (s1y2sem2)
+      await prisma.enrollment.create({
+        data: { studentProfileId: s1Id, courseOfferingId: s1y2sem2.id },
+      }); // No grade = ongoing
   }
 
-  // 7. Books
+  // Student 2 (IS) History
+  if (student2.studentProfile) {
+    const s2Id = student2.studentProfile.id;
+
+    // Completed Year 1
+    const s2y1sem1 = await findOffering("IS101", "2024-2025", 1);
+    const s2y1sem2 = await findOffering("IS102", "2024-2025", 2);
+
+    if (s2y1sem1)
+      await prisma.enrollment.create({
+        data: {
+          studentProfileId: s2Id,
+          courseOfferingId: s2y1sem1.id,
+          grade: "A-",
+        },
+      });
+    if (s2y1sem2)
+      await prisma.enrollment.create({
+        data: {
+          studentProfileId: s2Id,
+          courseOfferingId: s2y1sem2.id,
+          grade: "A",
+        },
+      });
+
+    // Current Year 2
+    const s2y2sem1 = await findOffering("IS201", "2025-2026", 1);
+    if (s2y2sem1)
+      await prisma.enrollment.create({
+        data: {
+          studentProfileId: s2Id,
+          courseOfferingId: s2y2sem1.id,
+          grade: "B",
+        },
+      });
+
+    const s2y2sem2 = await findOffering("IS202", "2025-2026", 2);
+    if (s2y2sem2)
+      await prisma.enrollment.create({
+        data: { studentProfileId: s2Id, courseOfferingId: s2y2sem2.id },
+      });
+  }
+
+  // 8. Books
+  console.log("Creating Books...");
   const book1 = await prisma.book.create({
     data: {
       title: "The Pragmatic Programmer",
@@ -355,15 +420,12 @@ async function main() {
     },
   });
 
-  // 8. Borrow Records
-  // Simplify: fetch profile for student 2
-  const s2Profile = await prisma.userProfile.findUnique({
-    where: { userId: student2.id },
-  });
-  if (s2Profile) {
+  // 9. Borrow Records
+  console.log("Creating Borrow Records...");
+  if (student2.studentProfile) {
     await prisma.borrowRecord.create({
       data: {
-        userProfileId: s2Profile.id,
+        studentProfileId: student2.studentProfile.id,
         bookId: book2.id,
         due_date: new Date(new Date().setDate(new Date().getDate() + 14)), // 14 days from now
         status: "BORROWED",
