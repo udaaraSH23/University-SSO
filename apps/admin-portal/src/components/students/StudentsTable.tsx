@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 import { Pagination } from "@repo/ui";
 import { StudentProfileDTO } from "@repo/backend";
 import Link from "next/link";
-import { Eye, Edit, Trash2 } from "lucide-react";
+import { Eye, Edit2, Trash2 } from "lucide-react";
 
 /**
  * StudentsTable
@@ -118,28 +118,28 @@ export function StudentsTable({
                       {/* View Action - Navigates to student detail page */}
                       <Link
                         href={`/students/${student.id}`}
-                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center gap-1"
+                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                        title="View Profile"
                       >
                         <Eye className="w-4 h-4" />
-                        View
                       </Link>
                       {/* Edit Action - Triggers the parent's edit handler */}
                       <button
                         onClick={() => onEdit(student)}
-                        className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 font-medium px-3 py-1 bg-gray-50 dark:bg-gray-800 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
+                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                        title="Edit Student"
                       >
-                        <Edit className="w-4 h-4" />
-                        Edit
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       {/* Delete Action - Destructive operation */}
                       {/* Inline Comment: Triggers confirmation modal via parent handler */}
                       <button
                         onClick={() => onDelete(student)}
-                        className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium px-3 py-1 bg-red-50 dark:bg-red-900/20 rounded hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors flex items-center gap-1"
+                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        title={`Delete ${student.fullName}`}
                         aria-label={`Delete ${student.fullName}`}
                       >
                         <Trash2 className="w-4 h-4" />
-                        Delete
                       </button>
                     </div>
                   </td>

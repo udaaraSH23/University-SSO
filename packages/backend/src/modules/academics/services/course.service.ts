@@ -20,10 +20,27 @@ export class CourseService extends BaseService {
   async getCourses(
     departmentId?: number,
     page: number = 1,
-    limit: number = 10
+    limit: number = 10,
+    search?: string,
+    facultyId?: number
   ): Promise<{ data: AcademicCourseDTO[]; total: number }> {
-    this.logger.debug({ departmentId, page, limit }, "Fetching courses");
-    const where = departmentId ? { departmentId } : {};
+    this.logger.debug(
+      { departmentId, page, limit, search, facultyId },
+      "Fetching courses"
+    );
+    const where: any = {};
+    if (departmentId) where.departmentId = departmentId;
+    if (facultyId)
+      where.department = {
+        facultyId: facultyId,
+      };
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { code: { contains: search } },
+      ];
+    }
 
     const [total, courses] = await Promise.all([
       prisma.course.count({ where }),

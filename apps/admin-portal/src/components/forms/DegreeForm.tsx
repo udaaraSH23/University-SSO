@@ -31,6 +31,18 @@ export function DegreeForm({
   const [departments, setDepartments] = useState<any[]>([]);
 
   useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    } else {
+      setFormData({
+        name: "",
+        departmentId: 0,
+        intakeAcademicYear: "",
+      });
+    }
+  }, [initialData]);
+
+  useEffect(() => {
     getDepartmentsAction().then((res) => {
       if (res.success && res.data) setDepartments(res.data);
     });

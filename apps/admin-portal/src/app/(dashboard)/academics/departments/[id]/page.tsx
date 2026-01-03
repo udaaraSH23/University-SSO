@@ -1,6 +1,6 @@
 "use client";
 
-import { DashboardHeader, SlideOver, Modal } from "@repo/ui";
+import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
 import { DegreesTable, DegreeProgram } from "@/components/degrees/DegreesTable";
 import { DegreeForm, DegreeFormData } from "@/components/forms/DegreeForm";
 import {
@@ -16,6 +16,7 @@ import {
   createDegreeProgramAction,
   updateDepartmentAction,
   deleteDegreeProgramAction,
+  updateDegreeProgramAction,
 } from "@/actions/academics.actions";
 import { toast } from "sonner";
 
@@ -32,8 +33,9 @@ export default function DepartmentDetailPage({
 
   const [isDegreeSlideOverOpen, setIsDegreeSlideOverOpen] = useState(false);
   const [isEditDepartmentOpen, setIsEditDepartmentOpen] = useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<
-    DegreeProgram | undefined
+  const { confirmDelete } = useDeleteConfirmation();
+  const [editingDegree, setEditingDegree] = useState<
+    (DegreeFormData & { id?: number }) | undefined
   >(undefined);
 
   const fetchData = async () => {
@@ -58,6 +60,7 @@ export default function DepartmentDetailPage({
   }, [resolvedParams.id]);
 
   const handleAddDegree = () => {
+    setEditingDegree(undefined);
     setIsDegreeSlideOverOpen(true);
   };
 
@@ -65,19 +68,30 @@ export default function DepartmentDetailPage({
     setIsEditDepartmentOpen(true);
   };
 
-  const handleCreateDegree = async (data: DegreeFormData) => {
-    const result = await createDegreeProgramAction({
-      name: data.name,
-      departmentId: Number.parseInt(resolvedParams.id),
-      intakeAcademicYear: data.intakeAcademicYear,
-    });
+  const handleDegreeSubmit = async (data: DegreeFormData) => {
+    let result;
+    if (editingDegree?.id) {
+      result = await updateDegreeProgramAction(editingDegree.id, {
+        name: data.name,
+        departmentId: Number(data.departmentId),
+        intakeAcademicYear: data.intakeAcademicYear,
+      });
+    } else {
+      result = await createDegreeProgramAction({
+        name: data.name,
+        departmentId: Number.parseInt(resolvedParams.id),
+        intakeAcademicYear: data.intakeAcademicYear,
+      });
+    }
 
     if (result.success) {
-      toast.success("Degree program created successfully");
+      toast.success(
+        editingDegree ? "Degree program updated" : "Degree program created"
+      );
       setIsDegreeSlideOverOpen(false);
       fetchData();
     } else {
-      toast.error("Failed to create degree program");
+      toast.error("Failed to save degree program");
     }
   };
 
@@ -99,17 +113,20 @@ export default function DepartmentDetailPage({
     }
   };
 
-  const handleConfirmDelete = async () => {
-    if (!deleteConfirmation) return;
-
-    const result = await deleteDegreeProgramAction(deleteConfirmation.id);
-    if (result.success) {
-      toast.success("Degree program deleted successfully");
-      fetchData();
-      setDeleteConfirmation(undefined);
-    } else {
-      toast.error("Failed to delete degree program");
-    }
+  const handleDeleteDegree = async (degree: DegreeProgram) => {
+    confirmDelete({
+      title: "Delete Degree Program",
+      description: `Are you sure you want to delete "${degree.name}"? This action cannot be undone. All courses and student records associated with this degree program might be affected.`,
+      onConfirm: async () => {
+        const result = await deleteDegreeProgramAction(degree.id);
+        if (result.success) {
+          toast.success("Degree program deleted successfully");
+          fetchData();
+        } else {
+          toast.error("Failed to delete degree program");
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -190,24 +207,38 @@ export default function DepartmentDetailPage({
 
         <DegreesTable
           data={degrees}
-          onEdit={(degree) => console.log("Edit degree", degree)}
-          onDelete={(degree) => setDeleteConfirmation(degree)}
+          onEdit={(degree) => {
+            setEditingDegree({
+              id: degree.id,
+              name: degree.name,
+              departmentId: degree.departmentId,
+              intakeAcademicYear: degree.intakeAcademicYear,
+            });
+            setIsDegreeSlideOverOpen(true);
+          }}
+          onDelete={(degree) => handleDeleteDegree(degree)}
         />
       </div>
 
       <SlideOver
         isOpen={isDegreeSlideOverOpen}
         onClose={() => setIsDegreeSlideOverOpen(false)}
-        title="Add New Degree Program"
-        description={`Create a new degree program under ${department.name}.`}
+        title={editingDegree ? "Edit Degree Program" : "Add New Degree Program"}
+        description={
+          editingDegree
+            ? "Modify degree program details."
+            : `Create a new degree program under ${department.name}.`
+        }
       >
         <DegreeForm
-          initialData={{
-            name: "",
-            departmentId: Number.parseInt(resolvedParams.id),
-            intakeAcademicYear: new Date().getFullYear().toString(),
-          }}
-          onSubmit={handleCreateDegree}
+          initialData={
+            editingDegree || {
+              name: "",
+              departmentId: Number.parseInt(resolvedParams.id),
+              intakeAcademicYear: new Date().getFullYear().toString(),
+            }
+          }
+          onSubmit={handleDegreeSubmit}
           onCancel={() => setIsDegreeSlideOverOpen(false)}
         />
       </SlideOver>
@@ -227,38 +258,6 @@ export default function DepartmentDetailPage({
           onCancel={() => setIsEditDepartmentOpen(false)}
         />
       </SlideOver>
-
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={!!deleteConfirmation}
-        onClose={() => setDeleteConfirmation(undefined)}
-        title="Delete Degree Program"
-        description={`Are you sure you want to delete "${deleteConfirmation?.name}"?`}
-        variant="danger"
-        footer={
-          <>
-            <button
-              onClick={() => setDeleteConfirmation(undefined)}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirmDelete}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              Delete
-            </button>
-          </>
-        }
-      >
-        <div className="text-sm text-gray-600 dark:text-gray-300">
-          <p>
-            This action cannot be undone. All courses and student records
-            associated with this degree program might be affected.
-          </p>
-        </div>
-      </Modal>
     </div>
   );
 }

@@ -6,7 +6,7 @@
 
 "use client";
 
-import { InfoCard } from "@repo/ui";
+import { InfoCard } from "./InfoCard";
 import { Library, LogOut, Users } from "lucide-react";
 import { motion } from "framer-motion";
 

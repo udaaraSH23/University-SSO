@@ -45,5 +45,5 @@ export * from "./layout/MobileHeader";
 export * from "./layout/DashboardFooter";
 export * from "./layout/DashboardShell"; // Main layout wrapper
 export * from "./layout/DashboardTopBar";
-export * from "./layout/FilterWrapper"; // Global top bar
+
 export * from "./layout/PortalSidebar"; // Configurable sidebar wrapper

@@ -142,19 +142,43 @@ export async function deleteDepartmentAction(id: number) {
 export async function getDegreeProgramsAction(
   departmentId?: number,
   page: number = 1,
-  intakeYear?: string
+  intakeYear?: string,
+  search?: string,
+  facultyId?: number
 ) {
   try {
     const { data, total } = await programService.getDegreePrograms(
       departmentId,
       page,
       10, // Limit
-      intakeYear
+      intakeYear,
+      search,
+      facultyId
     );
     return { success: true, data, total };
   } catch (error) {
     console.error("Failed to fetch degree programs:", error);
     return { success: false, error: "Failed to fetch degree programs" };
+  }
+}
+
+export async function getIntakeYearsAction() {
+  try {
+    const data = await programService.getDistinctIntakeYears();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Failed to fetch intake years:", error);
+    return { success: false, error: "Failed to fetch intake years" };
+  }
+}
+
+export async function getAllDegreeProgramsAction() {
+  try {
+    const data = await programService.getAllDegreePrograms();
+    return { success: true, data };
+  } catch (error) {
+    console.error("Failed to fetch all degree programs:", error);
+    return { success: false, error: "Failed to fetch all degree programs" };
   }
 }
 
@@ -219,10 +243,18 @@ export async function deleteDegreeProgramAction(id: number) {
 
 export async function getCoursesAction(
   departmentId?: number,
-  page: number = 1
+  page: number = 1,
+  search?: string,
+  facultyId?: number
 ) {
   try {
-    const { data, total } = await courseService.getCourses(departmentId, page);
+    const { data, total } = await courseService.getCourses(
+      departmentId,
+      page,
+      10,
+      search,
+      facultyId
+    );
     return { success: true, data, total };
   } catch (error) {
     console.error("Failed to fetch courses:", error);

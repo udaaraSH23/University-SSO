@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  DashboardHeader,
-  FilterWrapper,
-  SlideOver,
-  useDeleteConfirmation,
-} from "@repo/ui";
+import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
+import { FilterWrapper } from "@/components/shared/FilterWrapper";
 import {
   DepartmentsTable,
   Department,
@@ -14,7 +10,7 @@ import {
   DepartmentForm,
   DepartmentFormData,
 } from "@/components/forms/DepartmentForm";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Filter as FilterIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -167,7 +163,7 @@ export default function DepartmentsPage() {
         title="Departments"
         resourceCount={filteredDepartments.length}
         searchNode={
-          <div className="relative">
+          <div className="relative w-full">
             <input
               className="w-full pl-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
               placeholder="Search by department name..."
@@ -177,30 +173,41 @@ export default function DepartmentsPage() {
             />
           </div>
         }
-        onSearch={() => {}} // Realtime
-        onClear={() => {
-          setSearchTerm("");
-          setFacultyFilter(undefined);
-        }}
+        actions={
+          <>
+            <button
+              onClick={() => fetchDepartments()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              Search
+            </button>
+            <button
+              onClick={() => fetchDepartments()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
+            >
+              <FilterIcon className="w-3.5 h-3.5" />
+              Filter
+            </button>
+          </>
+        }
       >
-        <div className="flex items-center gap-2">
-          <select
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
-            value={facultyFilter || ""}
-            onChange={(e) =>
-              setFacultyFilter(
-                e.target.value ? Number(e.target.value) : undefined
-              )
-            }
-          >
-            <option value="">All Faculties</option>
-            {faculties.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
+          value={facultyFilter || ""}
+          onChange={(e) =>
+            setFacultyFilter(
+              e.target.value ? Number(e.target.value) : undefined
+            )
+          }
+        >
+          <option value="">All Faculties</option>
+          {faculties.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.name}
+            </option>
+          ))}
+        </select>
       </FilterWrapper>
 
       {loading ? (

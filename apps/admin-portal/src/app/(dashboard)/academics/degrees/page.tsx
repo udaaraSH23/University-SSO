@@ -1,14 +1,10 @@
 "use client";
 
 import { DegreeForm, DegreeFormData } from "@/components/forms/DegreeForm";
-import {
-  DashboardHeader,
-  FilterWrapper,
-  SlideOver,
-  useDeleteConfirmation,
-} from "@repo/ui";
+import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
+import { FilterWrapper } from "@/components/shared/FilterWrapper";
 import { DegreesTable, DegreeProgram } from "@/components/degrees/DegreesTable";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Filter as FilterIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -17,6 +13,9 @@ import {
   createDegreeProgramAction,
   updateDegreeProgramAction,
   deleteDegreeProgramAction,
+  getDepartmentsAction,
+  getFacultiesAction,
+  getIntakeYearsAction,
 } from "@/actions/academics.actions";
 
 export default function DegreesPage() {
@@ -31,10 +30,16 @@ export default function DegreesPage() {
   >(undefined);
   const [editingDegreeId, setEditingDegreeId] = useState<number | null>(null);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [faculties, setFaculties] = useState<any[]>([]);
+  const [intakeYears, setIntakeYears] = useState<string[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState<number | undefined>(
     undefined
   );
+  const [facultyFilter, setFacultyFilter] = useState<number | undefined>(
+    undefined
+  );
   const [intakeYearFilter, setIntakeYearFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const { confirmDelete } = useDeleteConfirmation();
 
   const fetchDegrees = async () => {
@@ -42,7 +47,9 @@ export default function DegreesPage() {
     const result = await getDegreeProgramsAction(
       departmentFilter,
       currentPage,
-      intakeYearFilter
+      intakeYearFilter,
+      searchTerm,
+      facultyFilter
     );
     if (result.success && result.data) {
       setDegrees(result.data as DegreeProgram[]);
@@ -54,13 +61,17 @@ export default function DegreesPage() {
   };
 
   useEffect(() => {
-    async function fetchDepartments() {
-      const res = await getDepartmentsAction();
-      if (res.success && res.data) {
-        setDepartments(res.data);
-      }
+    async function loadData() {
+      const [deptRes, facRes, yearRes] = await Promise.all([
+        getDepartmentsAction(),
+        getFacultiesAction(),
+        getIntakeYearsAction(),
+      ]);
+      if (deptRes.success && deptRes.data) setDepartments(deptRes.data);
+      if (facRes.success && facRes.data) setFaculties(facRes.data);
+      if (yearRes.success && yearRes.data) setIntakeYears(yearRes.data);
     }
-    fetchDepartments();
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -137,11 +148,8 @@ export default function DegreesPage() {
     });
   };
 
-  const filteredDegrees = degrees.filter(
-    (d) =>
-      d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.departmentName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Client-side filtering removed
+  const filteredDegrees = degrees;
 
   return (
     <div className="flex flex-col">
@@ -166,7 +174,7 @@ export default function DegreesPage() {
         title="Degrees"
         resourceCount={filteredDegrees.length}
         searchNode={
-          <div className="relative">
+          <div className="relative w-full">
             <input
               className="w-full pl-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
               placeholder="Search by name..."
@@ -176,39 +184,54 @@ export default function DegreesPage() {
             />
           </div>
         }
-        onSearch={() => fetchDegrees()}
-        onClear={() => {
-          setSearchTerm("");
-          setDepartmentFilter(undefined);
-          setIntakeYearFilter("");
-        }}
+        actions={
+          <>
+            <button
+              onClick={() => fetchDegrees()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              Search
+            </button>
+            <button
+              onClick={() => fetchDegrees()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
+            >
+              <FilterIcon className="w-3.5 h-3.5" />
+              Filter
+            </button>
+          </>
+        }
       >
-        <div className="flex items-center gap-2">
-          <select
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
-            value={departmentFilter || ""}
-            onChange={(e) =>
-              setDepartmentFilter(
-                e.target.value ? Number(e.target.value) : undefined
-              )
-            }
-          >
-            <option value="">All Departments</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
+        <select
+          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
+          value={facultyFilter || ""}
+          onChange={(e) =>
+            setFacultyFilter(
+              e.target.value ? Number(e.target.value) : undefined
+            )
+          }
+        >
+          <option value="">All Faculties</option>
+          {faculties.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.name}
+            </option>
+          ))}
+        </select>
 
-          <input
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm w-32"
-            placeholder="Intake Year"
-            type="text"
-            value={intakeYearFilter}
-            onChange={(e) => setIntakeYearFilter(e.target.value)}
-          />
-        </div>
+        <select
+          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
+          value={intakeYearFilter}
+          onChange={(e) => setIntakeYearFilter(e.target.value)}
+        >
+          <option value="">All Intake Years</option>
+          {intakeYears.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
       </FilterWrapper>
 
       {loading ? (

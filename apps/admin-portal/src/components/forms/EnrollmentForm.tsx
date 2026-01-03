@@ -39,12 +39,21 @@ interface EnrollmentFormProps {
   onSubmit: (data: EnrollmentFormData) => Promise<void>;
   onCancel: () => void;
   degreeProgramId: number;
+  initialData?: {
+    offeringId: number;
+    courseName?: string;
+    courseCode?: string;
+    grade?: string;
+  };
+  isEdit?: boolean;
 }
 
 export function EnrollmentForm({
   onSubmit,
   onCancel,
   degreeProgramId,
+  initialData,
+  isEdit = false,
 }: EnrollmentFormProps) {
   const [isPending, startTransition] = useTransition();
   const [offerings, setOfferings] = useState<any[]>([]);
@@ -56,13 +65,30 @@ export function EnrollmentForm({
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors },
   } = useForm<EnrollmentFormData>({
     resolver: zodResolver(enrollmentSchema) as any,
     defaultValues: {
-      grade: "A", // Default grade
+      grade: initialData?.grade || "A",
+      offeringId: initialData?.offeringId,
     },
   });
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        grade: initialData.grade || "A",
+        offeringId: initialData.offeringId,
+      });
+    } else {
+      reset({
+        grade: "A",
+        offeringId: undefined,
+      });
+    }
+  }, [initialData, reset]);
 
   const selectedOfferingId = watch("offeringId");
 
@@ -106,9 +132,10 @@ export function EnrollmentForm({
           <input
             type="text"
             placeholder="Search by course name or code..."
-            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            disabled={isEdit}
           />
         </div>
       </div>
@@ -145,6 +172,13 @@ export function EnrollmentForm({
                   </span>
                 </div>
               ))}
+            </div>
+          ) : isEdit && initialData ? (
+            <div className="p-3 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20">
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                {initialData.courseName} ({initialData.courseCode})
+              </span>
+              <span className="block text-xs text-gray-500">Editing Grade</span>
             </div>
           ) : (
             <div className="p-4 text-center text-gray-500 text-sm">
@@ -190,11 +224,11 @@ export function EnrollmentForm({
         </button>
         <button
           type="submit"
-          disabled={isPending || !selectedOfferingId}
+          disabled={isPending || (!selectedOfferingId && !isEdit)}
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-          {isPending ? "Enrolling..." : "Enroll Student"}
+          {isPending ? "Saving..." : isEdit ? "Update Grade" : "Enroll Student"}
         </button>
       </div>
     </form>

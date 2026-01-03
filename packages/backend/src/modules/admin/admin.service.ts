@@ -8,7 +8,7 @@ import prisma from "../../lib/db";
 import { AppError } from "../../common/utils/errors/app-error";
 import { BaseService } from "../../common/services/base.service";
 import { IAdminService } from "./admin.interface";
-import { AdminProfileDTO, StaffCreateDTO } from "./admin.dto";
+import { AdminProfileDTO, StaffCreateDTO, StaffUpdateDTO } from "./admin.dto";
 import { identityService } from "../identity/identity.service";
 
 const __FP_SIG = "FP-20251225-AG-SERVICE-ADMIN|HASH-PLACEHOLDER";
@@ -199,6 +199,100 @@ export class AdminService extends BaseService implements IAdminService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  /**
+   * Updates an existing staff member (Admin/Librarian) and syncs with WSO2.
+   *
+   * @param id - Staff Profile ID
+   * @param data - Update data
+   * @returns Promise<AdminProfileDTO>
+   */
+  async updateStaff(
+    id: number,
+    data: StaffUpdateDTO
+  ): Promise<AdminProfileDTO> {
+    this.logger.debug({ id }, "Updating staff profile");
+
+    // 1. Fetch current profile
+    const current = await prisma.staffProfile.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+    if (!current) {
+      throw new AppError("Staff profile not found", 404);
+    }
+
+    // 2. Update local DB
+    const updated = await prisma.staffProfile.update({
+      where: { id },
+      data: {
+        fullName: data.fullName,
+        staffType: data.staffType,
+      },
+      include: { user: true },
+    });
+
+    // 3. Sync name changes to WSO2
+    if (data.fullName && data.fullName !== current.fullName) {
+      try {
+        await identityService.updateUser(current.user.wso2_id, {
+          name: {
+            givenName: data.fullName.split(" ")[0] || "",
+            familyName: data.fullName.split(" ").slice(1).join(" ") || "Staff",
+          },
+        });
+      } catch (err) {
+        this.logger.warn(
+          { err },
+          "Failed to sync name change to Identity Server"
+        );
+      }
+    }
+
+    return {
+      id: updated.id,
+      fullName: updated.fullName,
+      email: updated.user.email,
+      staffType: updated.staffType,
+    };
+  }
+
+  /**
+   * Deletes a staff member, their user account, and WSO2 account.
+   *
+   * @param id - Staff Profile ID
+   */
+  async deleteStaff(id: number): Promise<void> {
+    this.logger.warn({ id }, "Deleting staff member");
+
+    // 1. Fetch profile to get WSO2 ID
+    const profile = await prisma.staffProfile.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+    if (!profile) {
+      throw new AppError("Staff profile not found", 404);
+    }
+
+    // 2. Delete from WSO2
+    try {
+      if (profile.user.wso2_id) {
+        await identityService.deleteUser(profile.user.wso2_id);
+      }
+    } catch (error) {
+      this.logger.error(
+        { error, wso2_id: profile.user.wso2_id },
+        "Failed to delete user from WSO2, proceeding with local delete"
+      );
+    }
+
+    // 3. Delete from Local Database
+    // Using transaction to ensure clean delete of profile and user
+    await prisma.$transaction(async (tx) => {
+      await tx.staffProfile.delete({ where: { id } });
+      await tx.user.delete({ where: { id: profile.userId } });
+    });
   }
 }
 

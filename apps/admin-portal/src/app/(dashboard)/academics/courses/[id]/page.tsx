@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DashboardHeader, SlideOver } from "@repo/ui";
+import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
 import { CourseForm, CourseFormData } from "@/components/forms/CourseForm";
 import {
   getCourseByIdAction,
@@ -22,6 +22,7 @@ export default function CourseDetailPage({
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const { confirmDelete } = useDeleteConfirmation();
 
   const fetchCourse = async () => {
     setLoading(true);
@@ -59,15 +60,20 @@ export default function CourseDetailPage({
   };
 
   const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this course?")) {
-      const courseId = Number.parseInt(resolvedParams.id);
-      const result = await deleteCourseAction(courseId);
-      if (result.success) {
-        router.push("/academics/courses");
-      } else {
-        alert("Failed to delete course");
-      }
-    }
+    confirmDelete({
+      title: "Delete Course",
+      description:
+        "Are you sure you want to delete this course? This action cannot be undone.",
+      onConfirm: async () => {
+        const courseId = Number.parseInt(resolvedParams.id);
+        const result = await deleteCourseAction(courseId);
+        if (result.success) {
+          router.push("/academics/courses");
+        } else {
+          alert("Failed to delete course");
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -109,30 +115,32 @@ export default function CourseDetailPage({
             {course.code} • {course.credits} Credits • {course.departmentName}
           </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsEditOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            <Edit2 className="w-4 h-4" />
-            Edit
-          </button>
-          <button
-            onClick={handleDelete}
-            className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </button>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              About this Course
-            </h2>
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                About this Course
+              </h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsEditOpen(true)}
+                  className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                  title="Edit Course"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  title="Delete Course"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               {course.description ||
                 "No description available for this course."}
@@ -174,21 +182,6 @@ export default function CourseDetailPage({
 
         <div className="space-y-6">
           {/* Placeholder for future sidebar items like "Enrolled Students" or "Instructors" */}
-          <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-6 border border-blue-100 dark:border-blue-900/30">
-            <h3 className="text-blue-800 dark:text-blue-300 font-medium mb-2">
-              Quick Actions
-            </h3>
-            <ul className="space-y-2 text-sm text-blue-600 dark:text-blue-400">
-              <li>
-                <button
-                  onClick={() => setIsEditOpen(true)}
-                  className="hover:underline"
-                >
-                  Edit Course Details
-                </button>
-              </li>
-            </ul>
-          </div>
         </div>
       </div>
 

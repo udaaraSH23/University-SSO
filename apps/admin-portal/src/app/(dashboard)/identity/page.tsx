@@ -1,9 +1,10 @@
 "use client";
 
-import { DashboardHeader, FilterWrapper, SlideOver } from "@repo/ui";
+import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
+import { FilterWrapper } from "@/components/shared/FilterWrapper";
 import { UsersTable, UserData } from "@/components/identity/UsersTable";
 import { UserForm, UserFormData } from "@/components/forms/UserForm";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Filter as FilterIcon } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
@@ -21,6 +22,7 @@ export default function IdentityPage() {
     page: 1,
     limit: 10,
   });
+  const { confirmDelete } = useDeleteConfirmation();
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -110,29 +112,32 @@ export default function IdentityPage() {
   };
 
   const handleDelete = async (id: string, provider: "local" | "wso2") => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this user? This action cannot be undone."
-      )
-    )
-      return;
+    confirmDelete({
+      title: "Delete User",
+      description:
+        "Are you sure you want to delete this user? This action cannot be undone.",
+      onConfirm: async () => {
+        try {
+          // Provider param is optional now, API handles it.
+          // If explicit WSO2 delete needed, provider=wso2 can be passed.
+          // But for ID management, we just pass ID.
+          const res = await fetch(`/api/admin/users/${id}`, {
+            method: "DELETE",
+          });
 
-    try {
-      const res = await fetch(`/api/admin/users/${id}?provider=${provider}`, {
-        method: "DELETE",
-      });
+          if (!res.ok) {
+            const result = await res.json();
+            throw new Error(result.error || "Delete failed");
+          }
 
-      if (!res.ok) {
-        const result = await res.json();
-        throw new Error(result.error || "Delete failed");
-      }
-
-      toast.success("User deleted successfully");
-      fetchUsers();
-    } catch (error: any) {
-      console.error("Delete error:", error);
-      toast.error(error.message || "Failed to delete user");
-    }
+          toast.success("User deleted successfully");
+          fetchUsers();
+        } catch (error: any) {
+          console.error("Delete error:", error);
+          toast.error(error.message || "Failed to delete user");
+        }
+      },
+    });
   };
 
   return (
@@ -153,46 +158,50 @@ export default function IdentityPage() {
 
       <FilterWrapper
         title="Filter Users"
+        searchNode={
+          <div className="relative w-full">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+              <Search className="w-5 h-5" />
+            </span>
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={filters.search}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, search: e.target.value }))
+              }
+              className="w-full pl-10 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 outline-none"
+            />
+          </div>
+        }
         actions={
-          <button
-            onClick={() => fetchUsers()}
-            className="w-full md:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition-colors flex items-center justify-center gap-2"
-          >
-            <Search className="w-4 h-4" />
-            Search
-          </button>
+          <>
+            <button
+              onClick={() => fetchUsers()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              Search
+            </button>
+            <button
+              onClick={() => fetchUsers()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
+            >
+              <FilterIcon className="w-3.5 h-3.5" />
+              Filter
+            </button>
+          </>
         }
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Role
-            </label>
-            <select className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 outline-none">
-              <option>All Roles</option>
-              <option>Administrator</option>
-              <option>Librarian</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Search
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                <Search className="w-5 h-5" />
-              </span>
-              <input
-                type="text"
-                placeholder="Search by name or email..."
-                value={filters.search}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, search: e.target.value }))
-                }
-                className="w-full pl-10 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 outline-none"
-              />
-            </div>
-          </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            Role
+          </label>
+          <select className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 outline-none">
+            <option>All Roles</option>
+            <option>Administrator</option>
+            <option>Librarian</option>
+          </select>
         </div>
       </FilterWrapper>
 

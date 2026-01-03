@@ -164,4 +164,29 @@ export async function searchStudentsAction(query: string) {
     return { success: false, error: "Failed to search students" };
   }
 }
-// actually I'll just write create for now properly
+export async function updateStudentEnrollmentAction(
+  enrollmentId: number,
+  data: {
+    grade?: string;
+  }
+) {
+  try {
+    await offeringService.updateStudentEnrollment(enrollmentId, data);
+    revalidatePath("/students/[id]", "page");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to update enrollment:", error);
+    return { success: false, error: "Failed to update enrollment" };
+  }
+}
+
+export async function deleteStudentEnrollmentAction(enrollmentId: number) {
+  try {
+    await offeringService.deleteStudentEnrollment(enrollmentId);
+    revalidatePath("/students/[id]", "page");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete enrollment:", error);
+    return { success: false, error: "Failed to delete enrollment" };
+  }
+}

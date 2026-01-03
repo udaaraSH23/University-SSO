@@ -282,6 +282,23 @@ export class OfferingService extends BaseService {
       where: { id: enrollmentId },
     });
   }
+
+  async updateStudentEnrollment(
+    enrollmentId: number,
+    data: { grade?: string }
+  ): Promise<void> {
+    this.logger.info({ enrollmentId, data }, "Updating student enrollment");
+    await prisma.enrollment.update({
+      where: { id: enrollmentId },
+      data: {
+        grade: data.grade,
+      },
+    });
+  }
+
+  async deleteStudentEnrollment(enrollmentId: number): Promise<void> {
+    await this.deleteEnrollment(enrollmentId);
+  }
 }
 
 export const offeringService = new OfferingService();

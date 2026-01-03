@@ -32,6 +32,20 @@ export function CourseForm({
     }
   );
 
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    } else {
+      setFormData({
+        name: "",
+        code: "",
+        departmentId: 0,
+        credits: 3,
+        description: "",
+      });
+    }
+  }, [initialData]);
+
   const [departments, setDepartments] = useState<any[]>([]);
 
   useEffect(() => {

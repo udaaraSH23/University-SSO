@@ -31,3 +31,8 @@ export interface PaginatedStaffDTO {
   limit: number;
   totalPages: number;
 }
+
+export interface StaffUpdateDTO {
+  fullName?: string;
+  staffType?: string;
+}

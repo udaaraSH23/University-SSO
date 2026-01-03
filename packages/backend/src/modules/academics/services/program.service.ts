@@ -21,15 +21,27 @@ export class ProgramService extends BaseService {
     departmentId?: number,
     page: number = 1,
     limit: number = 10,
-    intakeYear?: string
+    intakeYear?: string,
+    search?: string,
+    facultyId?: number
   ): Promise<{ data: DegreeProgramDTO[]; total: number }> {
     this.logger.debug(
-      { departmentId, page, limit, intakeYear },
+      { departmentId, page, limit, intakeYear, search, facultyId },
       "Fetching degree programs"
     );
     const where: any = {};
     if (departmentId) where.departmentId = departmentId;
     if (intakeYear) where.intakeAcademicYear = { contains: intakeYear };
+
+    if (facultyId) {
+      where.department = {
+        facultyId: facultyId,
+      };
+    }
+
+    if (search) {
+      where.name = { contains: search };
+    }
 
     const [total, degrees] = await Promise.all([
       prisma.degreeProgram.count({ where }),
@@ -117,6 +129,34 @@ export class ProgramService extends BaseService {
   async deleteDegreeProgram(id: number): Promise<void> {
     this.logger.info({ id }, "Deleting degree program");
     await prisma.degreeProgram.delete({ where: { id } });
+  }
+
+  async getDistinctIntakeYears(): Promise<string[]> {
+    const years = await prisma.degreeProgram.findMany({
+      select: {
+        intakeAcademicYear: true,
+      },
+      distinct: ["intakeAcademicYear"],
+      orderBy: {
+        intakeAcademicYear: "desc",
+      },
+    });
+    return years.map((y) => y.intakeAcademicYear);
+  }
+
+  async getAllDegreePrograms(): Promise<
+    { id: number; name: string; departmentId: number }[]
+  > {
+    return await prisma.degreeProgram.findMany({
+      select: {
+        id: true,
+        name: true,
+        departmentId: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
   }
 }
 

@@ -24,6 +24,17 @@ export function DepartmentForm({
     }
   );
 
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    } else {
+      setFormData({
+        name: "",
+        facultyId: 0,
+      });
+    }
+  }, [initialData]);
+
   const [faculties, setFaculties] = useState<any[]>([]);
 
   useEffect(() => {

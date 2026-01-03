@@ -1,6 +1,6 @@
 "use client";
 
-import { DashboardHeader, SlideOver, Modal } from "@repo/ui";
+import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
 import { CoursesTable, Course } from "@/components/courses/CoursesTable";
 import { CourseForm, CourseFormData } from "@/components/forms/CourseForm";
 import { DegreeForm, DegreeFormData } from "@/components/forms/DegreeForm";
@@ -13,6 +13,7 @@ import {
   createCourseAction,
   updateDegreeProgramAction,
   deleteCourseAction,
+  updateCourseAction,
 } from "@/actions/academics.actions";
 import { toast } from "sonner";
 
@@ -29,8 +30,9 @@ export default function DegreeDetailPage({
 
   const [isCourseSlideOverOpen, setIsCourseSlideOverOpen] = useState(false);
   const [isEditDegreeOpen, setIsEditDegreeOpen] = useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = useState<
-    Course | undefined
+  const { confirmDelete } = useDeleteConfirmation();
+  const [editingCourse, setEditingCourse] = useState<
+    (CourseFormData & { id?: number }) | undefined
   >(undefined);
 
   const fetchData = async () => {
@@ -55,6 +57,7 @@ export default function DegreeDetailPage({
   }, [resolvedParams.id]);
 
   const handleAddCourse = () => {
+    setEditingCourse(undefined);
     setIsCourseSlideOverOpen(true);
   };
 
@@ -62,22 +65,37 @@ export default function DegreeDetailPage({
     setIsEditDegreeOpen(true);
   };
 
-  const handleCreateCourse = async (data: CourseFormData) => {
+  const handleCourseSubmit = async (data: CourseFormData) => {
     if (!degree) return;
-    const result = await createCourseAction({
-      name: data.name,
-      code: data.code,
-      departmentId: degree.departmentId,
-      credits: data.credits,
-      description: data.description,
-    });
+    let result;
+    if (editingCourse?.id) {
+      result = await updateCourseAction(editingCourse.id, {
+        name: data.name,
+        code: data.code,
+        departmentId: degree.departmentId,
+        credits: data.credits,
+        description: data.description,
+      });
+    } else {
+      result = await createCourseAction({
+        name: data.name,
+        code: data.code,
+        departmentId: degree.departmentId,
+        credits: data.credits,
+        description: data.description,
+      });
+    }
 
     if (result.success) {
-      toast.success("Course created successfully");
+      toast.success(
+        editingCourse
+          ? "Course updated successfully"
+          : "Course created successfully"
+      );
       setIsCourseSlideOverOpen(false);
       fetchData();
     } else {
-      toast.error("Failed to create course");
+      toast.error("Failed to save course");
     }
   };
 
@@ -100,17 +118,20 @@ export default function DegreeDetailPage({
     }
   };
 
-  const handleConfirmDelete = async () => {
-    if (!deleteConfirmation) return;
-
-    const result = await deleteCourseAction(deleteConfirmation.id);
-    if (result.success) {
-      toast.success("Course deleted successfully");
-      fetchData();
-      setDeleteConfirmation(undefined);
-    } else {
-      toast.error("Failed to delete course");
-    }
+  const handleDeleteCourse = async (course: Course) => {
+    confirmDelete({
+      title: "Delete Course",
+      description: `Are you sure you want to delete "${course.name}"? This action cannot be undone. All offerings and enrollments associated with this course will be deleted.`,
+      onConfirm: async () => {
+        const result = await deleteCourseAction(course.id);
+        if (result.success) {
+          toast.success("Course deleted successfully");
+          fetchData();
+        } else {
+          toast.error("Failed to delete course");
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -193,26 +214,42 @@ export default function DegreeDetailPage({
 
         <CoursesTable
           data={courses}
-          onEdit={(course) => console.log("Edit course", course)}
-          onDelete={(course) => setDeleteConfirmation(course)}
+          onEdit={(course) => {
+            setEditingCourse({
+              id: course.id,
+              name: course.name,
+              code: course.code,
+              departmentId: degree.departmentId, // Pass context if needed, though form uses select
+              credits: course.credits,
+              description: course.description,
+            });
+            setIsCourseSlideOverOpen(true);
+          }}
+          onDelete={(course) => handleDeleteCourse(course)}
         />
       </div>
 
       <SlideOver
         isOpen={isCourseSlideOverOpen}
         onClose={() => setIsCourseSlideOverOpen(false)}
-        title="Add New Course"
-        description={`Add a new course to ${degree.departmentName}.`}
+        title={editingCourse ? "Edit Course" : "Add New Course"}
+        description={
+          editingCourse
+            ? "Modify course details."
+            : `Add a new course to ${degree.departmentName}.`
+        }
       >
         <CourseForm
-          initialData={{
-            name: "",
-            code: "",
-            departmentId: degree.departmentId,
-            credits: 3,
-            description: "",
-          }}
-          onSubmit={handleCreateCourse}
+          initialData={
+            editingCourse || {
+              name: "",
+              code: "",
+              departmentId: degree.departmentId,
+              credits: 3,
+              description: "",
+            }
+          }
+          onSubmit={handleCourseSubmit}
           onCancel={() => setIsCourseSlideOverOpen(false)}
         />
       </SlideOver>
@@ -233,38 +270,6 @@ export default function DegreeDetailPage({
           onCancel={() => setIsEditDegreeOpen(false)}
         />
       </SlideOver>
-
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={!!deleteConfirmation}
-        onClose={() => setDeleteConfirmation(undefined)}
-        title="Delete Course"
-        description={`Are you sure you want to delete "${deleteConfirmation?.name}"?`}
-        variant="danger"
-        footer={
-          <>
-            <button
-              onClick={() => setDeleteConfirmation(undefined)}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirmDelete}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              Delete
-            </button>
-          </>
-        }
-      >
-        <div className="text-sm text-gray-600 dark:text-gray-300">
-          <p>
-            This action cannot be undone. All offerings and enrollments
-            associated with this course will be deleted.
-          </p>
-        </div>
-      </Modal>
     </div>
   );
 }

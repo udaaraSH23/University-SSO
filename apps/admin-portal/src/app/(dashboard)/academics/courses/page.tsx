@@ -1,14 +1,10 @@
 "use client";
 
 import { CourseForm, CourseFormData } from "@/components/forms/CourseForm";
-import {
-  DashboardHeader,
-  FilterWrapper,
-  SlideOver,
-  useDeleteConfirmation,
-} from "@repo/ui";
+import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
+import { FilterWrapper } from "@/components/shared/FilterWrapper";
 import { CoursesTable, Course } from "@/components/courses/CoursesTable";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Filter as FilterIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -17,7 +13,8 @@ import {
   createCourseAction,
   updateCourseAction,
   deleteCourseAction,
-  getDepartmentsAction,
+  getFacultiesAction,
+  getAllDegreeProgramsAction,
 } from "@/actions/academics.actions";
 
 export default function CoursesPage() {
@@ -31,19 +28,41 @@ export default function CoursesPage() {
     CourseFormData | undefined
   >(undefined);
   const [editingCourseId, setEditingCourseId] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [departmentFilter, setDepartmentFilter] = useState<number | undefined>(
+  const [faculties, setFaculties] = useState<any[]>([]);
+  const [degrees, setDegrees] = useState<any[]>([]);
+  const [facultyFilter, setFacultyFilter] = useState<number | undefined>(
     undefined
   );
+  const [degreeFilter, setDegreeFilter] = useState<number | undefined>(
+    undefined
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  // We can still keep department filter if needed, but per request we focus on Faculty and Degree
+  // We will map Degree -> DepartmentId for the query
   const { confirmDelete } = useDeleteConfirmation();
 
   const fetchCourses = async () => {
     setLoading(true);
-    const result = await getCoursesAction(departmentFilter, currentPage);
+    // Logic: If degree selected, use its departmentId.
+    // If faculty selected, use facultyId.
+    let targetDeptId: number | undefined = undefined;
+
+    if (degreeFilter) {
+      const selectedDegree = degrees.find((d) => d.id === degreeFilter);
+      if (selectedDegree) {
+        targetDeptId = selectedDegree.departmentId;
+      }
+    }
+
+    const result = await getCoursesAction(
+      targetDeptId,
+      currentPage,
+      searchTerm,
+      facultyFilter
+    );
     if (result.success && result.data) {
       setCourses(result.data as Course[]);
-      setTotalPages(Math.ceil((result.total || 0) / 10));
+      setTotalPages(Math.ceil((result.total || 0) / 10)); // Default limit 10
     } else {
       console.error("Failed to fetch courses");
     }
@@ -51,18 +70,20 @@ export default function CoursesPage() {
   };
 
   useEffect(() => {
-    async function fetchDepartments() {
-      const res = await getDepartmentsAction();
-      if (res.success && res.data) {
-        setDepartments(res.data);
-      }
+    async function loadData() {
+      const [facRes, degRes] = await Promise.all([
+        getFacultiesAction(),
+        getAllDegreeProgramsAction(),
+      ]);
+      if (facRes.success && facRes.data) setFaculties(facRes.data);
+      if (degRes.success && degRes.data) setDegrees(degRes.data);
     }
-    fetchDepartments();
+    loadData();
   }, []);
 
   useEffect(() => {
     fetchCourses();
-  }, [currentPage, departmentFilter]);
+  }, [currentPage]); // Filters applied via Search button
 
   useEffect(() => {
     const action = searchParams.get("action");
@@ -136,12 +157,8 @@ export default function CoursesPage() {
     });
   };
 
-  const filteredCourses = courses.filter(
-    (c) =>
-      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.departmentName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Client-side filtering removed in favor of server-side
+  const filteredCourses = courses;
 
   return (
     <div className="flex flex-col">
@@ -166,7 +183,7 @@ export default function CoursesPage() {
         title="Courses"
         resourceCount={filteredCourses.length}
         searchNode={
-          <div className="relative">
+          <div className="relative w-full">
             <input
               className="w-full pl-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
               placeholder="Search by course name or code..."
@@ -176,30 +193,58 @@ export default function CoursesPage() {
             />
           </div>
         }
-        onSearch={() => fetchCourses()}
-        onClear={() => {
-          setSearchTerm("");
-          setDepartmentFilter(undefined);
-        }}
+        actions={
+          <>
+            <button
+              onClick={() => fetchCourses()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              Search
+            </button>
+            <button
+              onClick={() => {
+                fetchCourses();
+              }}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
+            >
+              <FilterIcon className="w-3.5 h-3.5" />
+              Filter
+            </button>
+          </>
+        }
       >
-        <div className="flex items-center gap-2">
-          <select
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
-            value={departmentFilter || ""}
-            onChange={(e) =>
-              setDepartmentFilter(
-                e.target.value ? Number(e.target.value) : undefined
-              )
-            }
-          >
-            <option value="">All Departments</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
+          value={facultyFilter || ""}
+          onChange={(e) =>
+            setFacultyFilter(
+              e.target.value ? Number(e.target.value) : undefined
+            )
+          }
+        >
+          <option value="">All Faculties</option>
+          {faculties.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2 outline-none text-sm"
+          value={degreeFilter || ""}
+          onChange={(e) =>
+            setDegreeFilter(e.target.value ? Number(e.target.value) : undefined)
+          }
+        >
+          <option value="">All Degrees</option>
+          {degrees.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.name}
+            </option>
+          ))}
+        </select>
       </FilterWrapper>
 
       {loading ? (

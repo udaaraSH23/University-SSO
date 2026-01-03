@@ -10,11 +10,11 @@ const __FP_SIG = "FP-20251230-US-PAGE-OFFERINGS|HASH-PLACEHOLDER";
 
 import {
   DashboardHeader,
-  FilterWrapper,
   SlideOver,
   Pagination,
   useDeleteConfirmation,
 } from "@repo/ui";
+import { FilterWrapper } from "@/components/shared/FilterWrapper";
 import {
   CourseOfferingsTable,
   CourseOffering,
@@ -30,7 +30,7 @@ import {
   OfferingForm,
   OfferingFormData,
 } from "@/components/forms/OfferingForm";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Filter as FilterIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -58,25 +58,14 @@ export default function GradesOfferingsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load Initial Data (Academic Years)
-  useEffect(() => {
-    async function fetchYears() {
-      const response = await getAcademicYearsAction();
-      if (response.success && response.data) {
-        setAcademicYears(response.data);
-        if (response.data.length > 0) {
-          setYearFilter(response.data[0]); // Default to latest year
-        }
-      }
-    }
-    fetchYears();
-  }, []);
-
   // Fetch Offerings on Filter/Page Change
-  const fetchOfferings = async (page: number) => {
+  const fetchOfferings = async (
+    page: number,
+    overrideFilters?: { academicYear?: string }
+  ) => {
     setIsLoading(true);
     const response = await getCourseOfferingsAction({
-      academicYear: yearFilter,
+      academicYear: overrideFilters?.academicYear ?? yearFilter,
       semester: semesterFilter,
       level: levelFilter,
       search: searchTerm,
@@ -92,9 +81,26 @@ export default function GradesOfferingsPage() {
     setIsLoading(false);
   };
 
-  // Initial Fetch
+  // Load Initial Data (Academic Years) and then Offerings
   useEffect(() => {
-    fetchOfferings(1);
+    async function initializePage() {
+      // 1. Fetch Years
+      const yearsResponse = await getAcademicYearsAction();
+      let initialYear = "All Years";
+
+      if (yearsResponse.success && yearsResponse.data) {
+        setAcademicYears(yearsResponse.data);
+        if (yearsResponse.data.length > 0) {
+          initialYear = yearsResponse.data[0];
+          setYearFilter(initialYear); // Update state for UI
+        }
+      }
+
+      // 2. Fetch Offerings with the determined year
+      await fetchOfferings(1, { academicYear: initialYear });
+    }
+
+    initializePage();
   }, []); // Run once on mount
 
   const handleFilter = () => {
@@ -198,97 +204,93 @@ export default function GradesOfferingsPage() {
 
       <FilterWrapper
         title="Filter Offerings"
+        searchNode={
+          <div className="relative w-full">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+              <Search className="w-5 h-5" />
+            </span>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by course..."
+              className="w-full pl-10 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 outline-none"
+            />
+          </div>
+        }
         actions={
-          <button
-            onClick={handleFilter}
-            className="w-full md:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition-colors flex items-center justify-center gap-2"
-          >
-            <Search className="w-4 h-4" />
-            Filter
-          </button>
+          <>
+            <button
+              onClick={() => fetchOfferings(1)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              Search
+            </button>
+            <button
+              onClick={handleFilter}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 text-sm whitespace-nowrap cursor-pointer"
+            >
+              <FilterIcon className="w-3.5 h-3.5" />
+              Filter
+            </button>
+          </>
         }
       >
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Level
-            </label>
-            <select
-              value={levelFilter || ""}
-              onChange={(e) =>
-                setLevelFilter(
-                  e.target.value ? Number(e.target.value) : undefined
-                )
-              }
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 outline-none"
-            >
-              <option value="">All Levels</option>
-              <option value="1">Level 1</option>
-              <option value="2">Level 2</option>
-              <option value="3">Level 3</option>
-              <option value="4">Level 4</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Academic Year
-            </label>
-            <select
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 outline-none"
-            >
-              <option value="All Years">All Years</option>
-              {academicYears.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Semester
-            </label>
-            <select
-              value={semesterFilter || ""}
-              onChange={(e) =>
-                setSemesterFilter(
-                  e.target.value ? Number(e.target.value) : undefined
-                )
-              }
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 outline-none"
-            >
-              <option value="">All Semesters</option>
-              <option value="1">Semester 1</option>
-              <option value="2">Semester 2</option>
-            </select>
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Search
-            </label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                  <Search className="w-5 h-5" />
-                </span>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by course..."
-                  className="w-full pl-10 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 outline-none"
-                />
-              </div>
-              <button
-                onClick={handleFilter}
-                className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors border border-gray-200 dark:border-gray-600 font-medium"
-              >
-                Search
-              </button>
-            </div>
-          </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            Level
+          </label>
+          <select
+            value={levelFilter || ""}
+            onChange={(e) =>
+              setLevelFilter(
+                e.target.value ? Number(e.target.value) : undefined
+              )
+            }
+            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 outline-none"
+          >
+            <option value="">All Levels</option>
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+            <option value="4">Level 4</option>
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            Academic Year
+          </label>
+          <select
+            value={yearFilter}
+            onChange={(e) => setYearFilter(e.target.value)}
+            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 outline-none"
+          >
+            <option value="All Years">All Years</option>
+            {academicYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            Semester
+          </label>
+          <select
+            value={semesterFilter || ""}
+            onChange={(e) =>
+              setSemesterFilter(
+                e.target.value ? Number(e.target.value) : undefined
+              )
+            }
+            className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg px-3 py-2.5 outline-none"
+          >
+            <option value="">All Semesters</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+          </select>
         </div>
       </FilterWrapper>
 
