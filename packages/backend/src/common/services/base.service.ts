@@ -1,13 +1,13 @@
-// Author: Udara Shanuka
+// Author: Udara Shanuka (Modified by System)
 // Project: University-Portal
-// FP-ID: FP-20251226-US-BASE-SVC
+// FP-ID: FP-20260105-BASE-SVC-V2
 // FP-HASH: HASH-PLACEHOLDER
-// Generated: 2025-12-26T22:16:00Z
+// Generated: 2026-01-05T11:00:00Z
 
 import { createLogger, Logger } from "@repo/logger";
-import { AppError } from "../utils/errors/app-error";
+import { AppError, ERROR_CODES } from "../../errors";
 
-export const __FP_SIG = "FP-20251226-AG-BASE-SVC|HASH-PLACEHOLDER";
+export const __FP_SIG = "FP-20260105-BASE-SVC-V2|HASH-PLACEHOLDER";
 
 /**
  * Abstract Base Service
@@ -44,6 +44,6 @@ export abstract class BaseService {
     if (error instanceof AppError) {
       throw error;
     }
-    throw new AppError(message, 500);
+    throw new AppError(message, ERROR_CODES.INTERNAL_ERROR, 500);
   }
 }

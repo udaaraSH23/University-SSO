@@ -63,30 +63,28 @@ export default async function GradesPage({
   const session = await auth();
 
   // Redirect to sign-in if no active session is found to protect private academic data.
-  if (!session?.user?.email) {
+  if (!session || !session.user || !session.user.email) {
     redirect("/api/auth/signin");
   }
 
   const email = session.user.email;
   // Await searchParams as per Next.js 15+ requirements for async access
-  const { year: yearParam, semester: semesterParam } = await searchParams;
+  // const { year: yearParam, semester: semesterParam } = await searchParams; // Original line
 
   // Parse filters: 'all' is treated as undefined to fetch/show everything
-  const yearLevel =
-    typeof yearParam === "string" && yearParam !== "all"
-      ? parseInt(yearParam)
-      : undefined;
-  const semester =
-    typeof semesterParam === "string" && semesterParam !== "all"
-      ? parseInt(semesterParam)
-      : undefined;
+  const yearLevel = searchParams.yearLevel
+    ? parseInt(searchParams.yearLevel as string)
+    : undefined;
+  const semester = searchParams.semester
+    ? parseInt(searchParams.semester as string)
+    : undefined;
 
   let grades: GradeDTO[] = [];
   try {
     // Fetch complete grade history first, then filter.
-    // This reduces the number of specialized API endpoints needed for simple filtering.
-    const allGrades = await studentService.getGrades(email);
-    grades = allGrades.filter((g) => {
+    // In a real app, you might pass filters to the backend to reduce payload size.
+    const allGrades = await api.execute(() => studentService.getGrades(email));
+    grades = allGrades.filter((g: any) => {
       let match = true;
       if (yearLevel && g.yearLevelTaken !== yearLevel) match = false;
       if (semester && g.semester !== semester) match = false;

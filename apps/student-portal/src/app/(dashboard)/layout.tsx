@@ -33,15 +33,17 @@ export default async function DashboardLayout({
 }) {
   const session = await auth();
 
-  if (!session || !session.user || !session.user.email) {
-    return null; // or redirect, guarded by middleware
+  if (!session?.user?.email) {
+    redirect("/api/auth/signin");
   }
 
-  const profile = await studentService.getProfile(session.user.email);
-  const borrowedBooks = await studentService.getBorrowedBooks(
-    session.user.email
+  const profile = await api.execute(() =>
+    studentService.getProfile(session.user.email!)
   );
-  const pendingBooksCount = borrowedBooks.filter((b) => {
+  const borrowedBooks = await api.execute(() =>
+    studentService.getBorrowedBooks(session.user.email!)
+  );
+  const pendingBooksCount = borrowedBooks.filter((b: any) => {
     const s = b.status?.toLowerCase();
     return s === "borrowed" || s === "overdue";
   }).length;

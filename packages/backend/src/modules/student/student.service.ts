@@ -1,10 +1,10 @@
-// Author: Udara Shanuka
+// Author: Udara Shanuka (Modified by System)
 // Project: University-Portal
-// FP-ID: FP-20251223-US-SERVICE-STUDENT
+// FP-ID: FP-20260105-US-SERVICE-STUDENT-V2
 // FP-HASH: HASH-PLACEHOLDER
-// Generated: 2025-12-26T22:35:00Z
+// Generated: 2026-01-05T11:00:00Z
 
-const __FP_SIG = "FP-20251223-US-SERVICE-STUDENT|HASH-PLACEHOLDER";
+const __FP_SIG = "FP-20260105-US-SERVICE-STUDENT-V2|HASH-PLACEHOLDER";
 
 import { StudentRepository } from "./student.repository";
 import {
@@ -20,7 +20,7 @@ import {
   StudentCreateDTO,
   StudentUpdateDTO,
 } from "./student.dto";
-import { AppError } from "../../common/utils/errors/app-error";
+import { DomainError, ERROR_CODES } from "../../errors";
 import { IStudentService } from "./student.interface";
 import { BaseService } from "../../common/services/base.service";
 import { identityService } from "../identity/identity.service";
@@ -43,7 +43,7 @@ export class StudentService extends BaseService implements IStudentService {
    *
    * @param email - Student's email address
    * @returns Promise<StudentProfileDTO>
-   * @throws AppError if profile is not found
+   * @throws DomainError if profile is not found
    */
   async getProfile(email: string): Promise<StudentProfileDTO> {
     this.logger.debug({ email }, "Fetching student profile");
@@ -51,7 +51,11 @@ export class StudentService extends BaseService implements IStudentService {
     if (!profile) {
       this.logger.warn({ email }, "Student profile not found");
       this.handleError(
-        new AppError("Student profile not found", 404),
+        new DomainError(
+          "Student profile not found",
+          ERROR_CODES.STUDENT_NOT_FOUND,
+          404
+        ),
         "Student profile not found"
       );
     }
@@ -81,6 +85,7 @@ export class StudentService extends BaseService implements IStudentService {
    * @param email - Student's email address
    * @param filters - Optional filters for semester/year
    * @returns Promise<CourseDTO[]>
+   * @throws DomainError if profile is not found
    */
   async getCourses(
     email: string,
@@ -89,7 +94,11 @@ export class StudentService extends BaseService implements IStudentService {
     this.logger.debug({ email, filters }, "Fetching student courses");
     const profile = await this.studentRepository.findProfileByEmail(email);
     if (!profile) {
-      throw new AppError("Student profile not found", 404);
+      throw new DomainError(
+        "Student profile not found",
+        ERROR_CODES.STUDENT_NOT_FOUND,
+        404
+      );
     }
 
     const enrollments = await this.studentRepository.findEnrollments(
@@ -128,7 +137,11 @@ export class StudentService extends BaseService implements IStudentService {
     const profile = await this.studentRepository.findProfileByEmail(email);
     if (!profile) {
       this.logger.warn({ email }, "Student profile not found for grades fetch");
-      throw new AppError("Student profile not found", 404);
+      throw new DomainError(
+        "Student profile not found",
+        ERROR_CODES.STUDENT_NOT_FOUND,
+        404
+      );
     }
 
     const enrollments = await this.studentRepository.findEnrollments(
@@ -166,7 +179,11 @@ export class StudentService extends BaseService implements IStudentService {
         { email },
         "Student profile not found for borrowed books fetch"
       );
-      throw new AppError("Student profile not found", 404);
+      throw new DomainError(
+        "Student profile not found",
+        ERROR_CODES.STUDENT_NOT_FOUND,
+        404
+      );
     }
 
     const records = await this.studentRepository.findBorrowRecords(profile.id);
@@ -257,7 +274,11 @@ export class StudentService extends BaseService implements IStudentService {
     const student = await this.studentRepository.findFullProfileById(id);
 
     if (!student) {
-      throw new AppError("Student profile not found", 404);
+      throw new DomainError(
+        "Student profile not found",
+        ERROR_CODES.STUDENT_NOT_FOUND,
+        404
+      );
     }
 
     const enrollments = student.enrollments.map((enr: any) => ({
@@ -371,7 +392,11 @@ export class StudentService extends BaseService implements IStudentService {
     // 1. Fetch current profile
     const current = await this.studentRepository.findById(id);
     if (!current) {
-      throw new AppError("Student not found", 404);
+      throw new DomainError(
+        "Student not found",
+        ERROR_CODES.STUDENT_NOT_FOUND,
+        404
+      );
     }
 
     // 2. Update local DB
@@ -424,7 +449,11 @@ export class StudentService extends BaseService implements IStudentService {
     // 1. Fetch student to get WSO2 ID
     const student = await this.studentRepository.findById(id);
     if (!student) {
-      throw new AppError("Student not found", 404);
+      throw new DomainError(
+        "Student not found",
+        ERROR_CODES.STUDENT_NOT_FOUND,
+        404
+      );
     }
 
     // 2. Delete from WSO2 Identity Server

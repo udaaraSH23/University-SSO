@@ -1,3 +1,4 @@
+```
 // Author: Udara Shanuka
 // Project: University-Portal
 // FP-ID: FP-20251223-US-COURSES-PAGE
@@ -5,9 +6,10 @@
 // Generated: 2025-12-25T11:00:00Z
 
 import { DashboardHeader } from "@repo/ui";
-import CourseFilter from "../../../components/dashboard/courses/CourseFilter";
-import CourseGrid from "../../../components/dashboard/courses/CourseGrid";
+import CourseList from "../../../components/dashboard/courses/CourseList";
+import CoursesFilter from "../../../components/dashboard/courses/CoursesFilter";
 import { auth } from "@repo/auth";
+import { api } from "../../../lib/api";
 import { studentService, CourseDTO } from "@repo/backend";
 import { redirect } from "next/navigation";
 
@@ -37,26 +39,27 @@ export default async function CoursesPage({
   // Verify user authentication session
 
   if (!session?.user?.email) {
-    return null;
+    redirect("/api/auth/signin");
   }
 
   const email = session.user.email;
-  const { year: yearParam, semester: semesterParam } = await searchParams;
-  const year = typeof yearParam === "string" ? yearParam : undefined;
-
-  let semester: number | undefined;
-  if (typeof semesterParam === "string") {
-    semester = parseInt(semesterParam);
-  }
+  const semester = searchParams.semester
+    ? parseInt(searchParams.semester as string)
+    : undefined;
+  const year = searchParams.year as string | undefined; // Assuming year filter is string "2024-2025" or level "1"
 
   let courses: CourseDTO[] = [];
   let error = null;
 
   try {
-    courses = await studentService.getCourses(email, {
-      year,
-      semester: isNaN(semester!) ? undefined : semester,
-    });
+    // 3. Fetching course data from the backend `studentService`
+    // We pass filters from searchParams to the service
+    courses = await api.execute(() =>
+      studentService.getCourses(email, {
+        semester,
+        year,
+      })
+    );
   } catch (err: any) {
     console.error("Failed to fetch courses:", err);
     if (err.message === "Student profile not found") {

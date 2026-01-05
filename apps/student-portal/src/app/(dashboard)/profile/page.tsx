@@ -9,6 +9,7 @@ import { studentService } from "@repo/backend";
 import { redirect } from "next/navigation";
 import ProfileView from "../../../components/dashboard/profile/ProfileView";
 import { DashboardHeader } from "@repo/ui";
+import { api } from "../../../lib/api";
 
 const __FP_SIG = "FP-20251225-SP-793842|HASH-PLACEHOLDER";
 
@@ -24,7 +25,11 @@ export default async function ProfilePage() {
     redirect("/api/auth/signin");
   }
 
-  const profile = await studentService.getProfile(session.user.email);
+  const profile = await api.execute(() =>
+    studentService.getProfile(session.user.email!)
+  );
+
+  const profileWithStringId = { ...profile, id: String(profile.id) };
 
   return (
     <div className="min-h-screen pb-12">
@@ -33,7 +38,7 @@ export default async function ProfilePage() {
         description="View your profile information."
         breadcrumb={[{ label: "Profile" }]}
       />
-      <ProfileView profile={profile} />
+      <ProfileView profile={profileWithStringId} />
     </div>
   );
 }

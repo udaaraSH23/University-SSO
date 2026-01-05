@@ -1,15 +1,16 @@
-// Author: Udara Shanuka
+// Author: Udara Shanuka (Modified by System)
 // Project: University-Portal
-// FP-ID: FP-20251223-US-REPO-STUDENT
+// FP-ID: FP-20260105-REPO-STUDENT-V2
 // FP-HASH: HASH-PLACEHOLDER
-// Generated: 2025-12-26T22:35:00Z
+// Generated: 2026-01-05T11:00:00Z
 
 import prisma from "../../lib/db";
 import { createLogger } from "@repo/logger";
+import { RepositoryError, ERROR_CODES } from "../../errors";
 
 const logger = createLogger({ service: "backend-student-repo" });
 
-const __FP_SIG = "FP-20251223-US-REPO-STUDENT|HASH-PLACEHOLDER";
+const __FP_SIG = "FP-20260105-REPO-STUDENT-V2|HASH-PLACEHOLDER";
 
 /**
  * Repository: Student Data Access
@@ -24,6 +25,7 @@ export class StudentRepository {
    *
    * @param email - The email of the user
    * @returns StudentProfile with DegreeProgram or null
+   * @throws RepositoryError on database failure
    */
   async findProfileByEmail(email: string) {
     logger.debug({ email }, "findProfileByEmail called");
@@ -67,7 +69,10 @@ export class StudentRepository {
       return result;
     } catch (error) {
       logger.error({ error, email }, "Failed to find profile by email");
-      throw error;
+      throw new RepositoryError(
+        "Failed to find profile by email",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -78,6 +83,7 @@ export class StudentRepository {
    * @param studentProfileId - The ID of the student's profile
    * @param filters - Optional filters object
    * @returns Array of Enrollment records with Course details
+   * @throws RepositoryError on database failure
    */
   async findEnrollments(
     studentProfileId: number,
@@ -143,7 +149,10 @@ export class StudentRepository {
         { error, studentProfileId, filters },
         "Failed to find enrollments"
       );
-      throw error;
+      throw new RepositoryError(
+        "Failed to find enrollments",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -154,6 +163,7 @@ export class StudentRepository {
    * @param studentProfileId - The ID of the student's profile
    * @param status - Status of the borrow record (optional)
    * @returns Array of BorrowRecord with Book details
+   * @throws RepositoryError on database failure
    */
   async findBorrowRecords(studentProfileId: number, status?: string) {
     logger.debug({ studentProfileId, status }, "findBorrowRecords called");
@@ -193,7 +203,10 @@ export class StudentRepository {
         { error, studentProfileId, status },
         "Failed to find borrow records"
       );
-      throw error;
+      throw new RepositoryError(
+        "Failed to find borrow records",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -285,7 +298,10 @@ export class StudentRepository {
       return { total, students };
     } catch (error) {
       logger.error({ error, filters }, "Failed to find paginated students");
-      throw error;
+      throw new RepositoryError(
+        "Failed to find paginated students",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -333,7 +349,10 @@ export class StudentRepository {
       };
     } catch (error) {
       logger.error({ error, id }, "Failed to find full profile by ID");
-      throw error;
+      throw new RepositoryError(
+        "Failed to find full profile by ID",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -403,7 +422,10 @@ export class StudentRepository {
       });
     } catch (error) {
       logger.error({ error, data }, "Failed to create student in database");
-      throw error;
+      throw new RepositoryError(
+        "Failed to create student in database",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -444,7 +466,10 @@ export class StudentRepository {
       });
     } catch (error) {
       logger.error({ error, id }, "Failed to update student in database");
-      throw error;
+      throw new RepositoryError(
+        "Failed to update student in database",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
   /**
@@ -480,7 +505,10 @@ export class StudentRepository {
       });
     } catch (error) {
       logger.error({ error, id }, "Failed to delete student from database");
-      throw error;
+      throw new RepositoryError(
+        "Failed to delete student from database",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 }

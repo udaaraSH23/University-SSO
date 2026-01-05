@@ -64,14 +64,14 @@ export const InfoCard = ({
 
   return (
     <div
-      className={`p-6 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm ${className}`}
+      className={`p-6 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm ${className}`}
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
             {title}
           </p>
-          <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-2">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
             {value}
           </h3>
         </div>

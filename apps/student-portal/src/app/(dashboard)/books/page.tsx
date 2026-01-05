@@ -74,19 +74,31 @@ export default async function BooksPage({
       // Dashboard Mode:
       // No query implies the user wants to see their own status.
       // We fetch all records and filter client-side (or in-controller) for categorization.
-      const allBooks = await studentService.getBorrowedBooks(email);
 
-      // Separating books based on user requirements
-      // Pending: Borrowed, Overdue, or not Returned
-      pendingBooks = allBooks.filter((b) => {
-        const s = b.status?.toLowerCase();
-        return s === "borrowed" || s === "overdue";
-      });
+      // 1. Fetch Student Profile to get ID (and ensures student exists)
+      // Using default service call without complex filters for now
+      // profile = await api.execute(() => studentService.getProfile(email)); // Profile already fetched above
 
-      // My Borrowed Books: History of returned books
-      borrowedBooks = allBooks.filter(
-        (b) => b.status?.toLowerCase() === "returned"
-      );
+      // 2. Fetch All Borrowed Books
+      // We fetch all records and filter client-side (or in-controller) for categorization.
+      if (profile) {
+        const allBooks = await api.execute(() =>
+          studentService.getBorrowedBooks(email)
+        );
+
+        // Separating books based on user requirements
+        // Pending: Borrowed, Overdue, or not Returned
+        pendingBooks = allBooks.filter((b: any) => {
+          const s = b.status?.toLowerCase();
+          return s === "borrowed" || s === "overdue";
+        });
+
+        // My Borrowed Books: History of returned books
+        borrowedBooks = allBooks.filter((b: any) => {
+          const s = b.status?.toLowerCase();
+          return s === "returned";
+        });
+      }
     }
   } catch (err) {
     console.error("Failed to fetch books:", err);
@@ -94,7 +106,6 @@ export default async function BooksPage({
 
   return (
     <div className="min-h-screen pb-12">
-      {/* Page Header */}
       {/* Page Header */}
       <DashboardHeader
         title="Books"
