@@ -11,14 +11,18 @@ const __FP_SIG = "FP-20251231-US-ADMIN-STATS|HASH-PLACEHOLDER";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Users, BookOpen, Building2, UserCheck } from "lucide-react";
-import { useEffect, useState } from "react";
-import { getAdminMetricsAction } from "../../actions/dashboard.actions";
+// import { useEffect, useState } from "react";
+// import { getAdminMetricsAction } from "../../actions/dashboard.actions";
 
-interface AdminStats {
+export interface AdminStats {
   totalStudents: number;
   totalCourses: number;
   totalDepartments: number;
   totalFaculties: number;
+}
+
+interface AdminStatsGridProps {
+  stats: AdminStats;
 }
 
 /**
@@ -28,32 +32,13 @@ interface AdminStats {
  * It serves as the primary visual indicator of the system's status on the dashboard.
  *
  * Features:
- * - Asynchronous data fetching on mount.
+ * - Accepts data via props (Server Component -> Client Component).
  * - Staggered entrance animations for visual appeal.
  * - Responsive grid layout (1 col mobile -> 4 cols large (desktop)).
  * - Deep links to specific management modules.
  */
-export function AdminStatsGrid() {
-  // State to hold the fetched statistics
-  // Initialized with zeros to show empty state before data load
-  const [stats, setStats] = useState<AdminStats>({
-    totalStudents: 0,
-    totalCourses: 0,
-    totalDepartments: 0,
-    totalFaculties: 0,
-  });
-
-  // Fetch statistics when the component mounts
-  useEffect(() => {
-    async function fetchStats() {
-      // Calls the server action to retrieve aggregated counts
-      const response = await getAdminMetricsAction();
-      if (response.success && response.data) {
-        setStats(response.data);
-      }
-    }
-    fetchStats();
-  }, []);
+export function AdminStatsGrid({ stats }: AdminStatsGridProps) {
+  // Data fetching handled by parent Server Component
 
   // Configuration for the statistics cards
   // Maps the raw data to visual properties (icon, color, label)

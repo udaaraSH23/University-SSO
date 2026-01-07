@@ -6,9 +6,12 @@
 
 const __FP_SIG = "FP-20260101-ADMIN-STUDENTS-PAGE|HASH-PLACEHOLDER";
 
-import { getStudentsAction } from "@/actions/student.actions";
-import { getFacultiesAction } from "@/actions/academics.actions";
-import { getAcademicYearsAction } from "@/actions/offering.actions";
+import {
+  studentService,
+  organizationService,
+  offeringService,
+} from "@repo/backend";
+import { api } from "@/lib/api";
 import { StudentListContainer } from "@/components/students/StudentListContainer";
 
 /**
@@ -20,7 +23,7 @@ import { StudentListContainer } from "@/components/students/StudentListContainer
  *
  * Responsibilities:
  * - Parsing URL search parameters to construct filter objects.
- * - Calling the backend action `getStudentsAction` to retrieve data.
+ * - Calling the backend services directly via `api.execute` to retrieve data.
  * - Handling loading and error states during data fetching.
  * - Rendering the `StudentListContainer` with the fetched data.
  */
@@ -41,41 +44,52 @@ export default async function StudentsPage({ searchParams }: PageProps) {
   // Resolve search parameters from the promise
   const params = await searchParams;
 
-  // Fetch faculties and academic years for filtering
-  const [facultiesRes, academicYearsRes] = await Promise.all([
-    getFacultiesAction(),
-    getAcademicYearsAction(),
-  ]);
+  let faculties: any[] = [];
+  let academicYears: any[] = [];
+  let studentsData: any = { students: [], total: 0, page: 1, totalPages: 1 };
+  let errorMsg = "";
 
-  // Construct the filters object from URL parameters
-  // Inline Comment: We parse string parameters to numbers where necessary and provide defaults.
-  const filters = {
-    query: params.query,
-    level: params.level ? parseInt(params.level) : undefined,
-    facultyId: params.faculty ? parseInt(params.faculty) : undefined,
-    // Inline Comment: Map 'department' param to 'departmentId' expected by the action
-    departmentId: params.department ? parseInt(params.department) : undefined,
-    academicYear: params.academicYear,
-    page: params.page ? parseInt(params.page) : 1,
-    limit: params.limit ? parseInt(params.limit) : 10,
-  };
+  try {
+    // Fetch faculties and academic years for filtering
+    const [facultiesRes, academicYearsRes] = await api.execute(() =>
+      Promise.all([
+        organizationService.getFaculties(),
+        offeringService.getAcademicYears(),
+      ])
+    );
+    faculties = facultiesRes;
+    academicYears = academicYearsRes;
 
-  // Fetch student data from the server action
-  // Inline Comment: This action encapsulates the business logic for retrieving students from the database.
-  const response = await getStudentsAction(filters);
+    // Construct the filters object from URL parameters
+    const filters = {
+      query: params.query,
+      level: params.level ? parseInt(params.level) : undefined,
+      facultyId: params.faculty ? parseInt(params.faculty) : undefined,
+      departmentId: params.department ? parseInt(params.department) : undefined,
+      academicYear: params.academicYear,
+      page: params.page ? parseInt(params.page) : 1,
+      limit: params.limit ? parseInt(params.limit) : 10,
+    };
+
+    // Fetch student data
+    studentsData = await api.execute(() =>
+      studentService.getPaginatedStudents(filters)
+    );
+  } catch (error: any) {
+    console.error("Data fetching error:", error);
+    errorMsg = error.message || "Failed to load data";
+  }
 
   // Error Handling Boundary
-  // Inline Comment: If the action fails or returns no data, we display a user-friendly error message.
-  if (!response.success || !response.data) {
+  if (errorMsg) {
     return (
       <div className="p-8 text-center bg-red-50 text-red-600 rounded-lg">
-        Error loading students: {response.error || "Unknown error"}
+        Error loading students: {errorMsg}
       </div>
     );
   }
 
-  // Destructure the successful response data
-  const { students, total, page, totalPages } = response.data;
+  const { students, total, page, totalPages } = studentsData;
 
   // Render the Container Component
   // Inline Comment: Pass the fetched data to the presentation component `StudentListContainer`.
@@ -87,10 +101,8 @@ export default async function StudentsPage({ searchParams }: PageProps) {
         currentPage={page}
         totalPages={totalPages}
         baseUrl="/students"
-        faculties={facultiesRes?.success ? facultiesRes.data ?? [] : []}
-        academicYears={
-          academicYearsRes?.success ? academicYearsRes.data ?? [] : []
-        }
+        faculties={faculties}
+        academicYears={academicYears}
       />
     </div>
   );

@@ -1,5 +1,3 @@
-"use client";
-
 // Author: UDARA SHANUKA
 // Project: University-Portal
 // FP-ID: FP-20251231-US-DASHBOARD-PAGE
@@ -10,8 +8,25 @@ const __FP_SIG = "FP-20251231-US-DASHBOARD-PAGE|HASH-PLACEHOLDER";
 
 import { AdminStatsGrid } from "../../components/dashboard/AdminStatsGrid";
 import { QuickAccessGrid } from "../../components/dashboard/QuickAccessGrid";
+import { adminDashboardService } from "@repo/backend";
+import { api } from "@/lib/api";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  let stats = {
+    totalStudents: 0,
+    totalCourses: 0,
+    totalDepartments: 0,
+    totalFaculties: 0,
+  };
+  let errorMsg = "";
+
+  try {
+    stats = await api.execute(() => adminDashboardService.getStats());
+  } catch (error: any) {
+    console.error("Failed to fetch admin stats:", error);
+    errorMsg = "Failed to load dashboard statistics.";
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
@@ -21,7 +36,13 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <AdminStatsGrid />
+      {errorMsg && (
+        <div className="p-4 rounded-lg bg-red-50 text-red-600 border border-red-200">
+          {errorMsg}
+        </div>
+      )}
+
+      <AdminStatsGrid stats={stats} />
       <QuickAccessGrid />
     </div>
   );

@@ -6,9 +6,10 @@
 
 const __FP_SIG = "FP-20260101-ADMIN-PAGE-STUDENT-DETAIL|HASH-PLACEHOLDER";
 
-import { getStudentByIdAction } from "@/actions/student.actions";
 import { StudentDetailView } from "@/components/students/StudentDetailView";
 import { notFound } from "next/navigation";
+import { studentService } from "@repo/backend";
+import { api } from "@/lib/api";
 
 interface PageProps {
   params: Promise<{
@@ -25,7 +26,7 @@ interface PageProps {
  *
  * Responsibilities:
  * - Parsing the `id` from the route parameters.
- * - Fetching student data (profile, enrollments, etc.) using `getStudentByIdAction`.
+ * - Fetching student data (profile, enrollments, etc.) using `studentService` directly via `api.execute`.
  * - Handling `404` errors for invalid IDs or non-existent students.
  * - Rendering error states if data fetching fails.
  */
@@ -38,15 +39,18 @@ export default async function StudentDetailPage({ params }: PageProps) {
     return notFound();
   }
 
-  const response = await getStudentByIdAction(studentId);
-
-  if (!response.success || !response.data) {
-    return (
-      <div className="p-8 text-center bg-red-50 text-red-600 rounded-lg">
-        Error loading student details: {response.error || "Unknown error"}
-      </div>
+  let studentData;
+  try {
+    studentData = await api.execute(() =>
+      studentService.getStudentDetailById(studentId)
     );
+  } catch (error) {
+    console.error("Failed to fetch student details:", error);
   }
 
-  return <StudentDetailView data={response.data} />;
+  if (!studentData) {
+    return notFound();
+  }
+
+  return <StudentDetailView data={studentData} />;
 }

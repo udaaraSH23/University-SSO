@@ -17,6 +17,9 @@ import {
   GraduationCap,
 } from "lucide-react";
 
+import { toast } from "sonner";
+import { useEffect } from "react";
+
 interface DashboardShellProps {
   children: React.ReactNode;
   user: {
@@ -24,6 +27,7 @@ interface DashboardShellProps {
     course: string; // Changed from course? to course to match student portal
     image?: string;
   };
+  apiError?: string;
 }
 
 /**
@@ -36,11 +40,18 @@ interface DashboardShellProps {
  * @param {DashboardShellProps} props - Component properties.
  * @param {React.ReactNode} props.children - Child components to render within the content area.
  * @param {Object} props.user - User information for the sidebar profile.
+ * @param {string} props.apiError - Optional error message to display.
  */
 export default function DashboardShell({
   children,
   user,
+  apiError,
 }: DashboardShellProps) {
+  useEffect(() => {
+    if (apiError) {
+      toast.error(apiError);
+    }
+  }, [apiError]);
   const sidebarItems: SidebarItem[] = [
     {
       label: "Dashboard",
