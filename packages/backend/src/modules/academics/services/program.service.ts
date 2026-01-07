@@ -1,13 +1,21 @@
-// Author: Udara Shanuka
+// Author: Udara Shanuka (Modified by System)
 // Project: University-Portal
-// FP-ID: FP-20251230-US-SERVICE-PROGRAM
-// Generated: 2025-12-30
+// FP-ID: FP-20260105-US-SERVICE-PROGRAM-V2
+// FP-HASH: HASH-PLACEHOLDER
+// Generated: 2026-01-05T11:25:00Z
+
+const __FP_SIG = "FP-20260105-US-SERVICE-PROGRAM-V2|HASH-PLACEHOLDER";
 
 import prisma from "../../../lib/db";
-import { AppError } from "../../../common/utils/errors/app-error";
 import { BaseService } from "../../../common/services/base.service";
 import { DegreeProgramDTO } from "../academics.dto";
+import { DomainError, ERROR_CODES } from "../../../errors";
 
+/**
+ * Service: Degree Program Management
+ *
+ * Handles operations related to degree programs.
+ */
 export class ProgramService extends BaseService {
   constructor() {
     super("backend-program-service");
@@ -17,6 +25,17 @@ export class ProgramService extends BaseService {
   // Degree Programs
   // ===========================================================================
 
+  /**
+   * Retrieves a paginated list of degree programs with filters.
+   *
+   * @param departmentId - Filter by department
+   * @param page - Page number (default: 1)
+   * @param limit - Items per page (default: 10)
+   * @param intakeYear - Filter by intake year
+   * @param search - Search by name
+   * @param facultyId - Filter by faculty
+   * @returns Promise<{ data: DegreeProgramDTO[]; total: number }>
+   */
   async getDegreePrograms(
     departmentId?: number,
     page: number = 1,
@@ -64,6 +83,13 @@ export class ProgramService extends BaseService {
     return { data, total };
   }
 
+  /**
+   * Creates a new degree program.
+   *
+   * @param data - Program creation data
+   * @returns Promise<DegreeProgramDTO>
+   * @throws DomainError if department is not found
+   */
   async createDegreeProgram(data: {
     departmentId: number;
     name: string;
@@ -73,7 +99,12 @@ export class ProgramService extends BaseService {
     const dept = await prisma.department.findUnique({
       where: { id: data.departmentId },
     });
-    if (!dept) throw new AppError("Department not found", 404);
+    if (!dept)
+      throw new DomainError(
+        "Department not found",
+        ERROR_CODES.DEPARTMENT_NOT_FOUND,
+        404
+      );
 
     const degree = await prisma.degreeProgram.create({
       data,
@@ -88,12 +119,24 @@ export class ProgramService extends BaseService {
     };
   }
 
+  /**
+   * Retrieves a degree program by ID.
+   *
+   * @param id - Program ID
+   * @returns Promise<DegreeProgramDTO>
+   * @throws DomainError if program is not found
+   */
   async getDegreeProgram(id: number): Promise<DegreeProgramDTO> {
     const degree = await prisma.degreeProgram.findUnique({
       where: { id },
       include: { department: true },
     });
-    if (!degree) throw new AppError("Degree Program not found", 404);
+    if (!degree)
+      throw new DomainError(
+        "Degree Program not found",
+        ERROR_CODES.DEGREE_PROGRAM_NOT_FOUND,
+        404
+      );
     return {
       id: degree.id,
       departmentId: degree.departmentId,
@@ -103,6 +146,13 @@ export class ProgramService extends BaseService {
     };
   }
 
+  /**
+   * Updates an existing degree program.
+   *
+   * @param id - Program ID
+   * @param data - Update data
+   * @returns Promise<DegreeProgramDTO>
+   */
   async updateDegreeProgram(
     id: number,
     data: {
@@ -126,6 +176,11 @@ export class ProgramService extends BaseService {
     };
   }
 
+  /**
+   * Deletes a degree program by ID.
+   *
+   * @param id - Program ID
+   */
   async deleteDegreeProgram(id: number): Promise<void> {
     this.logger.info({ id }, "Deleting degree program");
     await prisma.degreeProgram.delete({ where: { id } });

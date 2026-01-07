@@ -15,6 +15,21 @@ import { ApiClientError, ERROR_CODES } from "./errors";
  * Usage:
  * const data = await apiClient.execute(() => studentService.getProfile(email));
  */
+const SAFE_ERROR_MESSAGES: Partial<Record<string, string>> = {
+  [ERROR_CODES.VALIDATION_ERROR]: "Please check your input and try again.",
+  [ERROR_CODES.UNAUTHORIZED]: "You must be logged in to perform this action.",
+  [ERROR_CODES.FORBIDDEN]:
+    "You do not have permission to access this resource.",
+  [ERROR_CODES.INTERNAL_ERROR]:
+    "An unexpected error occurred. Please try again later.",
+  [ERROR_CODES.DB_FAILURE]:
+    "Service temporarily unavailable. Please try again later.",
+  [ERROR_CODES.RESOURCE_NOT_FOUND]:
+    "The requested resource could not be found.",
+  [ERROR_CODES.STUDENT_NOT_FOUND]: "Student profile not found.",
+  [ERROR_CODES.USER_NOT_FOUND]: "User account not found.",
+};
+
 export class ApiClient {
   /**
    * Executes the provided async function and handles errors.
@@ -26,11 +41,15 @@ export class ApiClient {
     } catch (error: any) {
       // If validation error or domain error with a 'code'
       if (error && error.code) {
+        // Use mapped safe message if available, otherwise default to a generic one
+        const safeMessage =
+          SAFE_ERROR_MESSAGES[error.code] || "An operation error occurred.";
+
         throw new ApiClientError(
-          error.message || "Operation failed",
+          safeMessage,
           error.code,
           error.details,
-          error
+          error // Original error preserved for debugging
         );
       }
 
@@ -41,7 +60,7 @@ export class ApiClient {
 
       // Default to Internal Error for unmapped exceptions
       throw new ApiClientError(
-        error.message || "An unexpected error occurred",
+        "An unexpected error occurred. Please try again later.",
         ERROR_CODES.INTERNAL_ERROR,
         undefined,
         error

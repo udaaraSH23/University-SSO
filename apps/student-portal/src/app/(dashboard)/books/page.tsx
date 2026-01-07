@@ -6,6 +6,7 @@
 
 import { auth } from "@repo/auth";
 import { studentService, bookReader, BookDTO } from "@repo/backend";
+import { api } from "../../../lib/api";
 
 import BooksSearch from "../../../components/dashboard/books/BooksSearch";
 import BorrowedBooksTable from "../../../components/dashboard/books/BorrowedBooksTable";

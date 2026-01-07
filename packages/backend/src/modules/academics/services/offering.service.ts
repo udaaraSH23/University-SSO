@@ -1,13 +1,22 @@
-// Author: Udara Shanuka
+// Author: Udara Shanuka (Modified by System)
 // Project: University-Portal
-// FP-ID: FP-20251230-US-SERVICE-OFFERING
-// Generated: 2025-12-30
+// FP-ID: FP-20260105-US-SERVICE-OFFERING-V2
+// FP-HASH: HASH-PLACEHOLDER
+// Generated: 2026-01-05T11:20:00Z
+
+const __FP_SIG = "FP-20260105-US-SERVICE-OFFERING-V2|HASH-PLACEHOLDER";
 
 import prisma from "../../../lib/db";
-import { AppError } from "../../../common/utils/errors/app-error";
 import { BaseService } from "../../../common/services/base.service";
 import { CourseOfferingDTO } from "../academics.dto";
+import { DomainError, ERROR_CODES } from "../../../errors";
 
+/**
+ * Service: Course Offering Management
+ *
+ * Handles lifecycle of course offerings (sessions), student enrollments,
+ * and related academic operations.
+ */
 export class OfferingService extends BaseService {
   constructor() {
     super("backend-offering-service");
@@ -17,6 +26,13 @@ export class OfferingService extends BaseService {
   // Course Offerings
   // ===========================================================================
 
+  /**
+   * Creates a new course offering for a specific academic term.
+   *
+   * @param data - Offering creation data
+   * @returns Promise<CourseOfferingDTO>
+   * @throws DomainError if course is not found or offering already exists
+   */
   async createCourseOffering(data: {
     courseId: number;
     academicYear: string;
@@ -27,7 +43,12 @@ export class OfferingService extends BaseService {
     const course = await prisma.course.findUnique({
       where: { id: data.courseId },
     });
-    if (!course) throw new AppError("Course not found", 404);
+    if (!course)
+      throw new DomainError(
+        "Course not found",
+        ERROR_CODES.COURSE_NOT_FOUND,
+        404
+      );
 
     // Check for duplicate
     const existing = await prisma.courseOffering.findFirst({
@@ -38,7 +59,11 @@ export class OfferingService extends BaseService {
       },
     });
     if (existing)
-      throw new AppError("Course offering already exists for this term", 400);
+      throw new DomainError(
+        "Course offering already exists for this term",
+        ERROR_CODES.OFFERING_ALREADY_EXISTS,
+        400
+      );
 
     const offering = await prisma.courseOffering.create({
       data,
@@ -81,6 +106,12 @@ export class OfferingService extends BaseService {
     });
   }
 
+  /**
+   * Retrieves a paginated list of course offerings with filters.
+   *
+   * @param filters - Filtering options
+   * @returns Promise<{ data: CourseOfferingDTO[]; metadata: any }>
+   */
   async getCourseOfferings(filters?: {
     academicYear?: string;
     semester?: number;
@@ -173,6 +204,13 @@ export class OfferingService extends BaseService {
     return years.map((y) => y.academicYear);
   }
 
+  /**
+   * Retrieves a specific course offering by ID with enrollment details.
+   *
+   * @param id - Offering ID
+   * @returns Promise<CourseOfferingDTO & { enrollments: any[] }>
+   * @throws DomainError if offering is not found
+   */
   async getCourseOfferingById(
     id: number
   ): Promise<CourseOfferingDTO & { enrollments: any[] }> {
@@ -191,7 +229,12 @@ export class OfferingService extends BaseService {
       },
     });
 
-    if (!offering) throw new AppError("Course offering not found", 404);
+    if (!offering)
+      throw new DomainError(
+        "Course offering not found",
+        ERROR_CODES.OFFERING_NOT_FOUND,
+        404
+      );
 
     return {
       id: offering.id,
@@ -216,6 +259,13 @@ export class OfferingService extends BaseService {
   // Enrollments
   // ===========================================================================
 
+  /**
+   * Enrolls a student in a course offering.
+   *
+   * @param data - Enrollment data
+   * @returns Promise<Enrollment>
+   * @throws DomainError if student or offering is not found
+   */
   async enrollStudent(data: {
     offeringId: number;
     studentId: string;
@@ -228,13 +278,22 @@ export class OfferingService extends BaseService {
       where: { student_id: data.studentId },
     });
     if (!student)
-      throw new AppError(`Student with ID ${data.studentId} not found`, 404);
+      throw new DomainError(
+        `Student with ID ${data.studentId} not found`,
+        ERROR_CODES.STUDENT_NOT_FOUND,
+        404
+      );
 
     // Verify Offering
     const offering = await prisma.courseOffering.findUnique({
       where: { id: data.offeringId },
     });
-    if (!offering) throw new AppError("Course offering not found", 404);
+    if (!offering)
+      throw new DomainError(
+        "Course offering not found",
+        ERROR_CODES.OFFERING_NOT_FOUND,
+        404
+      );
 
     const enrollment = await prisma.enrollment.upsert({
       where: {

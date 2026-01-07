@@ -17,6 +17,7 @@ import DashboardShell from "../../components/dashboard/DashboardShell";
 import { auth } from "@repo/auth";
 import { studentService } from "@repo/backend";
 import { redirect } from "next/navigation";
+import { api } from "@/lib/api";
 
 const __FP_SIG = "FP-20251223-US-V2W3X4|HASH-PLACEHOLDER";
 
@@ -37,12 +38,21 @@ export default async function DashboardLayout({
     redirect("/api/auth/signin");
   }
 
-  const profile = await api.execute(() =>
-    studentService.getProfile(session.user.email!)
-  );
-  const borrowedBooks = await api.execute(() =>
-    studentService.getBorrowedBooks(session.user.email!)
-  );
+  let profile: any = null;
+  let borrowedBooks: any[] = [];
+  let apiError: string | undefined;
+
+  try {
+    [profile, borrowedBooks] = await Promise.all([
+      api.execute(() => studentService.getProfile(session.user.email!)),
+      api.execute(() => studentService.getBorrowedBooks(session.user.email!)),
+    ]);
+  } catch (error: any) {
+    console.error("[DashboardLayout] Data Fetch Error:", error);
+    // ApiClient ensures 'error.message' is safe for users
+    apiError = error.message;
+  }
+
   const pendingBooksCount = borrowedBooks.filter((b: any) => {
     const s = b.status?.toLowerCase();
     return s === "borrowed" || s === "overdue";
@@ -54,7 +64,11 @@ export default async function DashboardLayout({
   };
 
   return (
-    <DashboardShell user={user} pendingBooksCount={pendingBooksCount}>
+    <DashboardShell
+      user={user}
+      pendingBooksCount={pendingBooksCount}
+      apiError={apiError}
+    >
       {children}
     </DashboardShell>
   );

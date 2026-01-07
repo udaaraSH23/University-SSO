@@ -1,15 +1,16 @@
-// Author: Udara Shanuka
+// Author: Udara Shanuka (Modified by System)
 // Project: University-Portal
-// FP-ID: FP-20251226-US-SVC-LENDING
+// FP-ID: FP-20260105-AG-SERVICE-LENDING-V2
 // FP-HASH: HASH-PLACEHOLDER
-// Generated: 2025-12-26T22:35:00Z
+// Generated: 2026-01-05T13:15:00Z
 
 import prisma from "../../lib/db";
 
-const __FP_SIG = "FP-20251226-US-SVC-LENDING|HASH-PLACEHOLDER";
+const __FP_SIG = "FP-20260105-AG-SERVICE-LENDING-V2|HASH-PLACEHOLDER";
 import { BorrowRecord, Prisma } from "@repo/database";
 import { ILendingService, BookAvailabilityResult } from "./lending.interface";
 import { BaseService } from "../../common/services/base.service";
+import { DomainError, ERROR_CODES } from "../../errors";
 
 /**
  * Service: Lending Management
@@ -37,7 +38,11 @@ export class LendingService extends BaseService implements ILendingService {
     try {
       const book = await prisma.book.findUnique({ where: { id: bookId } });
       if (!book || book.available_copies < 1) {
-        throw new Error("Book not available");
+        throw new DomainError(
+          "Book not available",
+          ERROR_CODES.LENDING_BOOK_UNAVAILABLE,
+          400
+        );
       }
 
       const studentProfile = await prisma.studentProfile.findUnique({
@@ -45,11 +50,19 @@ export class LendingService extends BaseService implements ILendingService {
       });
 
       if (!studentProfile) {
-        throw new Error("Student not found");
+        throw new DomainError(
+          "Student not found",
+          ERROR_CODES.STUDENT_NOT_FOUND,
+          404
+        );
       }
 
       if (!studentProfile.isLibraryRegistered) {
-        throw new Error("Student is not registered for library facilities");
+        throw new DomainError(
+          "Student is not registered for library facilities",
+          ERROR_CODES.LENDING_STUDENT_NOT_REGISTERED,
+          403
+        );
       }
 
       const result = await prisma.$transaction(
@@ -91,7 +104,11 @@ export class LendingService extends BaseService implements ILendingService {
       });
 
       if (!book) {
-        throw new Error("Book not found with this ISBN");
+        throw new DomainError(
+          "Book not found with this ISBN",
+          ERROR_CODES.BOOK_NOT_FOUND,
+          404
+        );
       }
 
       const student = await prisma.studentProfile.findUnique({
@@ -99,7 +116,11 @@ export class LendingService extends BaseService implements ILendingService {
       });
 
       if (!student) {
-        throw new Error("Student not found");
+        throw new DomainError(
+          "Student not found",
+          ERROR_CODES.STUDENT_NOT_FOUND,
+          404
+        );
       }
 
       const record = await prisma.borrowRecord.findFirst({
@@ -111,8 +132,10 @@ export class LendingService extends BaseService implements ILendingService {
       });
 
       if (!record) {
-        throw new Error(
-          "No active borrow record found for this student and book"
+        throw new DomainError(
+          "No active borrow record found for this student and book",
+          ERROR_CODES.LENDING_RECORD_NOT_FOUND,
+          404
         );
       }
 
@@ -137,9 +160,18 @@ export class LendingService extends BaseService implements ILendingService {
         include: { book: true },
       });
 
-      if (!record) throw new Error("Record not found");
+      if (!record)
+        throw new DomainError(
+          "Record not found",
+          ERROR_CODES.LENDING_RECORD_NOT_FOUND,
+          404
+        );
       if (record.status === "RETURNED")
-        throw new Error("Book already returned");
+        throw new DomainError(
+          "Book already returned",
+          ERROR_CODES.LENDING_ALREADY_RETURNED,
+          400
+        );
 
       const result = await prisma.$transaction(
         async (tx: Prisma.TransactionClient) => {
@@ -386,7 +418,12 @@ export class LendingService extends BaseService implements ILendingService {
         where: { student_id: studentId },
       });
 
-      if (!student) throw new Error("Student not found");
+      if (!student)
+        throw new DomainError(
+          "Student not found",
+          ERROR_CODES.STUDENT_NOT_FOUND,
+          404
+        );
 
       const skip = (page - 1) * limit;
 
@@ -419,7 +456,12 @@ export class LendingService extends BaseService implements ILendingService {
         where: { student_id: studentId },
       });
 
-      if (!student) throw new Error("Student not found");
+      if (!student)
+        throw new DomainError(
+          "Student not found",
+          ERROR_CODES.STUDENT_NOT_FOUND,
+          404
+        );
 
       const newStatus = !student.isLibraryRegistered;
 

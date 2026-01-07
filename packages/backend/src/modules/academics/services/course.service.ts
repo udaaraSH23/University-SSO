@@ -1,13 +1,22 @@
-// Author: Udara Shanuka
+// Author: Udara Shanuka (Modified by System)
 // Project: University-Portal
-// FP-ID: FP-20251230-US-SERVICE-COURSE
-// Generated: 2025-12-30
+// FP-ID: FP-20260105-US-SERVICE-COURSE-V2
+// FP-HASH: HASH-PLACEHOLDER
+// Generated: 2026-01-05T11:15:00Z
+
+const __FP_SIG = "FP-20260105-US-SERVICE-COURSE-V2|HASH-PLACEHOLDER";
 
 import prisma from "../../../lib/db";
-import { AppError } from "../../../common/utils/errors/app-error";
 import { BaseService } from "../../../common/services/base.service";
 import { AcademicCourseDTO } from "../academics.dto";
+import { DomainError, ERROR_CODES } from "../../../errors";
 
+/**
+ * Service: Course Management
+ *
+ * Handles operations related to academic courses including creation,
+ * retrieval, updating, and deletion.
+ */
 export class CourseService extends BaseService {
   constructor() {
     super("backend-course-service");
@@ -17,6 +26,16 @@ export class CourseService extends BaseService {
   // Courses
   // ===========================================================================
 
+  /**
+   * Retrieves a paginated list of courses with optional filters.
+   *
+   * @param departmentId - Filter by department ID
+   * @param page - Page number (default: 1)
+   * @param limit - Items per page (default: 10)
+   * @param search - Search query for name or code
+   * @param facultyId - Filter by faculty ID
+   * @returns Promise<{ data: AcademicCourseDTO[]; total: number }>
+   */
   async getCourses(
     departmentId?: number,
     page: number = 1,
@@ -65,6 +84,12 @@ export class CourseService extends BaseService {
     return { data, total };
   }
 
+  /**
+   * Searches for courses matching the query string.
+   *
+   * @param query - Search string for course name or code
+   * @returns Promise<AcademicCourseDTO[]>
+   */
   async searchCourses(query: string): Promise<AcademicCourseDTO[]> {
     this.logger.debug({ query }, "Searching courses");
     const courses = await prisma.course.findMany({
@@ -85,6 +110,13 @@ export class CourseService extends BaseService {
     }));
   }
 
+  /**
+   * Creates a new academic course.
+   *
+   * @param data - Course creation data
+   * @returns Promise<AcademicCourseDTO>
+   * @throws DomainError if department is not found
+   */
   async createCourse(data: {
     departmentId: number;
     code: string;
@@ -96,7 +128,12 @@ export class CourseService extends BaseService {
     const dept = await prisma.department.findUnique({
       where: { id: data.departmentId },
     });
-    if (!dept) throw new AppError("Department not found", 404);
+    if (!dept)
+      throw new DomainError(
+        "Department not found",
+        ERROR_CODES.DEPARTMENT_NOT_FOUND,
+        404
+      );
 
     const course = await prisma.course.create({
       data,
@@ -113,12 +150,24 @@ export class CourseService extends BaseService {
     };
   }
 
+  /**
+   * Retrieves a specific course by ID.
+   *
+   * @param id - Course ID
+   * @returns Promise<AcademicCourseDTO>
+   * @throws DomainError if course is not found
+   */
   async getCourse(id: number): Promise<AcademicCourseDTO> {
     const course = await prisma.course.findUnique({
       where: { id },
       include: { department: true },
     });
-    if (!course) throw new AppError("Course not found", 404);
+    if (!course)
+      throw new DomainError(
+        "Course not found",
+        ERROR_CODES.COURSE_NOT_FOUND,
+        404
+      );
     return {
       id: course.id,
       departmentId: course.departmentId,
@@ -130,6 +179,13 @@ export class CourseService extends BaseService {
     };
   }
 
+  /**
+   * Updates an existing course.
+   *
+   * @param id - Course ID
+   * @param data - Data to update
+   * @returns Promise<AcademicCourseDTO>
+   */
   async updateCourse(
     id: number,
     data: {
@@ -157,6 +213,11 @@ export class CourseService extends BaseService {
     };
   }
 
+  /**
+   * Deletes a course by ID.
+   *
+   * @param id - Course ID
+   */
   async deleteCourse(id: number): Promise<void> {
     this.logger.info({ id }, "Deleting course");
     await prisma.course.delete({ where: { id } });

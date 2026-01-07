@@ -1,8 +1,8 @@
-// Author: Udara Shanuka
+// Author: Udara Shanuka (Modified by System)
 // Project: University-Portal
-// FP-ID: FP-20251231-AG-SERVICE-IDENTITY
+// FP-ID: FP-20260105-AG-SERVICE-IDENTITY-V2
 // FP-HASH: HASH-PLACEHOLDER
-// Generated: 2025-12-31T12:05:00Z
+// Generated: 2026-01-05T13:10:00Z
 
 import { createLogger } from "@repo/logger";
 import {
@@ -10,9 +10,9 @@ import {
   WSO2UserCreateDTO,
   WSO2UserUpdateDTO,
 } from "./identity.interface";
-import { AppError } from "../../common/utils/errors/app-error";
+import { DomainError, ERROR_CODES } from "../../errors";
 
-const __FP_SIG = "FP-20251231-AG-SERVICE-IDENTITY|HASH-PLACEHOLDER";
+const __FP_SIG = "FP-20260105-AG-SERVICE-IDENTITY-V2|HASH-PLACEHOLDER";
 
 const logger = createLogger({ service: "backend-identity-service" });
 
@@ -64,7 +64,11 @@ export class IdentityService implements IIdentityService {
       if (!response.ok) {
         const error = await response.text();
         logger.error({ error }, "Failed to fetch WSO2 token");
-        throw new AppError("Failed to authenticate with Identity Server", 500);
+        throw new DomainError(
+          "Failed to authenticate with Identity Server",
+          ERROR_CODES.IDENTITY_SERVER_ERROR,
+          500
+        );
       }
 
       const data = await response.json();
@@ -109,8 +113,9 @@ export class IdentityService implements IIdentityService {
       if (!response.ok) {
         const error = await response.text();
         logger.error({ error }, "Failed to create WSO2 user");
-        throw new AppError(
+        throw new DomainError(
           "Failed to create user in Identity Server",
+          ERROR_CODES.IDENTITY_CREATION_FAILED,
           response.status
         );
       }
@@ -153,8 +158,9 @@ export class IdentityService implements IIdentityService {
 
     if (!groupId) {
       logger.error({ groupName }, "Group not found in WSO2");
-      throw new AppError(
+      throw new DomainError(
         `Group ${groupName} not found in Identity Server`,
+        ERROR_CODES.RESOURCE_NOT_FOUND,
         404
       );
     }
@@ -189,8 +195,9 @@ export class IdentityService implements IIdentityService {
     if (!response.ok) {
       const error = await response.text();
       logger.error({ error }, "Failed to add user to group");
-      throw new AppError(
+      throw new DomainError(
         "Failed to assign role in Identity Server",
+        ERROR_CODES.IDENTITY_SERVER_ERROR,
         response.status
       );
     }
@@ -223,8 +230,9 @@ export class IdentityService implements IIdentityService {
       if (!response.ok) {
         const error = await response.text();
         logger.error({ error }, "Failed to generate invite link");
-        throw new AppError(
+        throw new DomainError(
           "Failed to generate invitation in Identity Server",
+          ERROR_CODES.IDENTITY_SERVER_ERROR,
           response.status
         );
       }
@@ -272,8 +280,9 @@ export class IdentityService implements IIdentityService {
     if (!response.ok) {
       const error = await response.text();
       logger.error({ error }, "Failed to update WSO2 user");
-      throw new AppError(
+      throw new DomainError(
         "Failed to update user in Identity Server",
+        ERROR_CODES.IDENTITY_SERVER_ERROR,
         response.status
       );
     }
@@ -299,8 +308,9 @@ export class IdentityService implements IIdentityService {
       if (!response.ok && response.status !== 404) {
         const error = await response.text();
         logger.error({ error }, "Failed to delete WSO2 user");
-        throw new AppError(
+        throw new DomainError(
           "Failed to delete user in Identity Server",
+          ERROR_CODES.IDENTITY_SERVER_ERROR,
           response.status
         );
       }
@@ -330,7 +340,11 @@ export class IdentityService implements IIdentityService {
       if (!response.ok) {
         const error = await response.text();
         logger.error({ error }, "Failed to fetch groups from WSO2");
-        throw new AppError("Failed to fetch groups", response.status);
+        throw new DomainError(
+          "Failed to fetch groups",
+          ERROR_CODES.IDENTITY_SERVER_ERROR,
+          response.status
+        );
       }
 
       const data = await response.json();

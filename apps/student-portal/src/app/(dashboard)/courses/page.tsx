@@ -1,4 +1,3 @@
-```
 // Author: Udara Shanuka
 // Project: University-Portal
 // FP-ID: FP-20251223-US-COURSES-PAGE
@@ -6,8 +5,8 @@
 // Generated: 2025-12-25T11:00:00Z
 
 import { DashboardHeader } from "@repo/ui";
-import CourseList from "../../../components/dashboard/courses/CourseList";
-import CoursesFilter from "../../../components/dashboard/courses/CoursesFilter";
+import CourseGrid from "../../../components/dashboard/courses/CourseGrid";
+import CourseFilter from "../../../components/dashboard/courses/CourseFilter";
 import { auth } from "@repo/auth";
 import { api } from "../../../lib/api";
 import { studentService, CourseDTO } from "@repo/backend";

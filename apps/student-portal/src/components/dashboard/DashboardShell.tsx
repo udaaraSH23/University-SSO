@@ -15,6 +15,8 @@ import {
   User,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 const __FP_SIG = "FP-20251225-AG-STUDENT-SHELL|HASH-PLACEHOLDER";
 
@@ -28,6 +30,7 @@ interface DashboardShellProps {
     image?: string;
   };
   pendingBooksCount?: number;
+  apiError?: string;
 }
 
 /**
@@ -40,7 +43,13 @@ export default function DashboardShell({
   children,
   user,
   pendingBooksCount,
+  apiError,
 }: DashboardShellProps) {
+  useEffect(() => {
+    if (apiError) {
+      toast.error(apiError);
+    }
+  }, [apiError]);
   // Use pathname only if we needed custom logic, but PortalSidebar handles basic active state.
   // If generic PortalSidebar needs help with 'startsWith' vs 'exact', we configure it here.
 

@@ -10,6 +10,7 @@ import { auth } from "@repo/auth";
 import { studentService, GradeDTO } from "@repo/backend";
 import { redirect } from "next/navigation";
 import { DashboardHeader } from "@repo/ui";
+import { api } from "../../../lib/api";
 
 const __FP_SIG = "FP-20251223-US-M8N9O0|HASH-PLACEHOLDER";
 
@@ -126,10 +127,6 @@ export default async function GradesPage({
         <GradesFilter />
 
         <GradesTable grades={grades} gpa={gpa} />
-
-        <div className="mt-12 text-center text-sm text-gray-400 pb-8">
-          © 2023 University Portal System. All rights reserved.
-        </div>
       </div>
     </div>
   );

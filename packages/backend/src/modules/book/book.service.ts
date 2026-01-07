@@ -1,18 +1,19 @@
-// Author: Udara Shanuka
+// Author: Udara Shanuka (Modified by System)
 // Project: University-Portal
-// FP-ID: FP-20251226-US-SVC-BOOK
+// FP-ID: FP-20260105-US-SVC-BOOK-V2
 // FP-HASH: HASH-PLACEHOLDER
-// Generated: 2025-12-26T22:35:00Z
+// Generated: 2026-01-05T13:00:00Z
+
+const __FP_SIG = "FP-20260105-US-SVC-BOOK-V2|HASH-PLACEHOLDER";
 
 import { BaseService } from "../../common/services/base.service";
-
-const __FP_SIG = "FP-20251226-US-SVC-BOOK|HASH-PLACEHOLDER";
 import { IBookManager, IBookReader } from "./book.interface";
 import { BookRepository } from "./book.repository";
 import { BookDTO } from "../student/student.dto";
 import prisma from "../../lib/db";
 import { CreateBookInput, UpdateBookInput } from "./book.schema";
 import { Book } from "@repo/database";
+import { DomainError, ERROR_CODES } from "../../errors";
 
 const bookRepository = new BookRepository();
 
@@ -38,16 +39,23 @@ export class BookReader extends BaseService implements IBookReader {
     this.logger.debug({ bookId }, "Fetching book details");
     const id = parseInt(bookId);
     if (isNaN(id)) {
-      this.handleError(new Error("Invalid ID"), "Invalid book ID format");
+      throw new DomainError(
+        "Invalid book ID format",
+        ERROR_CODES.VALIDATION_ERROR,
+        400
+      );
     }
-
     try {
       const book = await bookRepository.findBookById(id);
       if (!book) {
         // We might want to throw 404 here, relying on BaseService or standard error
         // Since handleError throws, we can construct the error first.
         // Actually handleError wraps it.
-        throw new Error("Book not found");
+        throw new DomainError(
+          "Book not found",
+          ERROR_CODES.BOOK_NOT_FOUND,
+          404
+        );
       }
 
       return {
@@ -63,15 +71,6 @@ export class BookReader extends BaseService implements IBookReader {
           "https://images.unsplash.com/photo-1609866138210-84bb60719e37?auto=format&fit=crop&q=80&w=1000",
       };
     } catch (err: unknown) {
-      // catch block to use handleError if not already handled
-      // But handleError throws completely.
-      if ((err as Error).message === "Book not found") {
-        // Re-throw specific errors or let handleError genericize?
-        // BaseService logic: if instance of AppError rethrow.
-        // We should define specific AppErrors or pass message.
-        // For now just pass to handle error.
-        this.handleError(err, "Book not found");
-      }
       this.handleError(err, "Failed to get book details");
     }
   }

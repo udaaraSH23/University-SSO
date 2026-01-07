@@ -23,6 +23,7 @@ export * from "./auth/AuthErrorCard";
 // Purpose: Reusable elements like cards, themes, and pagination controls.
 export * from "./common/ThemeToggle";
 export * from "./common/ThemeProvider";
+export * from "./common/Toaster";
 // StatsCard: Used in Student Portal (Icon Left layout)
 // InfoCard: Used in Library Portal (Icon Right layout)
 

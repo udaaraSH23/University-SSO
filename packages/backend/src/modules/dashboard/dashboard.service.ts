@@ -1,10 +1,10 @@
-// Author: Udara Shanuka
+// Author: Udara Shanuka (Modified by System)
 // Project: University-Portal
-// FP-ID: FP-20251224-US-SERVICE-DASHBOARD
+// FP-ID: FP-20260105-US-SERVICE-DASHBOARD-V2
 // FP-HASH: HASH-PLACEHOLDER
-// Generated: 2025-12-26T22:35:00Z
+// Generated: 2026-01-05T13:05:00Z
 
-const __FP_SIG = "FP-20251224-US-SERVICE-DASHBOARD|HASH-PLACEHOLDER";
+const __FP_SIG = "FP-20260105-US-SERVICE-DASHBOARD-V2|HASH-PLACEHOLDER";
 
 import { StudentRepository } from "../student/student.repository";
 import {
@@ -14,7 +14,7 @@ import {
   BorrowedBookDTO,
   DashboardDataDTO,
 } from "../student/student.dto";
-import { AppError } from "../../common/utils/errors/app-error";
+import { DomainError, ERROR_CODES } from "../../errors";
 import { IDashboardService } from "./dashboard.interface";
 import { BaseService } from "../../common/services/base.service";
 
@@ -39,7 +39,11 @@ export class DashboardService extends BaseService implements IDashboardService {
     if (!profile) {
       this.logger.warn({ email }, "Student profile not found for dashboard");
       this.handleError(
-        new AppError("Student profile not found", 404),
+        new DomainError(
+          "Student profile not found",
+          ERROR_CODES.STUDENT_NOT_FOUND,
+          404
+        ),
         "Student profile not found"
       );
     }
