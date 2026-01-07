@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "main": "./src/index.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -w",
     "test": "vitest"
   },

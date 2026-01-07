@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --workspaces --if-present
+
+      - name: Type Check & Build
+        # Runs build for all workspaces to ensure compilation passes
+        run: npx turbo run build
+
+      - name: Test
+        # Runs tests for all workspaces
+        run: npm run test
