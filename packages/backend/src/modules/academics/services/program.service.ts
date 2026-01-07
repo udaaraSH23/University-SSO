@@ -9,7 +9,7 @@ const __FP_SIG = "FP-20260105-US-SERVICE-PROGRAM-V2|HASH-PLACEHOLDER";
 import prisma from "../../../lib/db";
 import { BaseService } from "../../../common/services/base.service";
 import { DegreeProgramDTO } from "../academics.dto";
-import { DomainError, ERROR_CODES } from "../../../errors";
+import { DomainError, ERROR_CODES, RepositoryError } from "../../../errors";
 
 /**
  * Service: Degree Program Management
@@ -48,39 +48,47 @@ export class ProgramService extends BaseService {
       { departmentId, page, limit, intakeYear, search, facultyId },
       "Fetching degree programs"
     );
-    const where: any = {};
-    if (departmentId) where.departmentId = departmentId;
-    if (intakeYear) where.intakeAcademicYear = { contains: intakeYear };
+    try {
+      const where: any = {};
+      if (departmentId) where.departmentId = departmentId;
+      if (intakeYear) where.intakeAcademicYear = { contains: intakeYear };
 
-    if (facultyId) {
-      where.department = {
-        facultyId: facultyId,
-      };
+      if (facultyId) {
+        where.department = {
+          facultyId: facultyId,
+        };
+      }
+
+      if (search) {
+        where.name = { contains: search };
+      }
+
+      const [total, degrees] = await Promise.all([
+        prisma.degreeProgram.count({ where }),
+        prisma.degreeProgram.findMany({
+          where,
+          include: { department: true },
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+      ]);
+
+      const data = degrees.map((d) => ({
+        id: d.id,
+        departmentId: d.departmentId,
+        name: d.name,
+        intakeAcademicYear: d.intakeAcademicYear,
+        departmentName: d.department.name,
+      }));
+
+      return { data, total };
+    } catch (err) {
+      if (err instanceof DomainError) throw err;
+      throw new RepositoryError(
+        "Failed to fetch degree programs",
+        ERROR_CODES.DB_FAILURE
+      );
     }
-
-    if (search) {
-      where.name = { contains: search };
-    }
-
-    const [total, degrees] = await Promise.all([
-      prisma.degreeProgram.count({ where }),
-      prisma.degreeProgram.findMany({
-        where,
-        include: { department: true },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-    ]);
-
-    const data = degrees.map((d) => ({
-      id: d.id,
-      departmentId: d.departmentId,
-      name: d.name,
-      intakeAcademicYear: d.intakeAcademicYear,
-      departmentName: d.department.name,
-    }));
-
-    return { data, total };
   }
 
   /**
@@ -96,27 +104,35 @@ export class ProgramService extends BaseService {
     intakeAcademicYear: string;
   }): Promise<DegreeProgramDTO> {
     this.logger.info({ data }, "Creating degree program");
-    const dept = await prisma.department.findUnique({
-      where: { id: data.departmentId },
-    });
-    if (!dept)
-      throw new DomainError(
-        "Department not found",
-        ERROR_CODES.DEPARTMENT_NOT_FOUND,
-        404
-      );
+    try {
+      const dept = await prisma.department.findUnique({
+        where: { id: data.departmentId },
+      });
+      if (!dept)
+        throw new DomainError(
+          "Department not found",
+          ERROR_CODES.DEPARTMENT_NOT_FOUND,
+          404
+        );
 
-    const degree = await prisma.degreeProgram.create({
-      data,
-      include: { department: true },
-    });
-    return {
-      id: degree.id,
-      departmentId: degree.departmentId,
-      name: degree.name,
-      intakeAcademicYear: degree.intakeAcademicYear,
-      departmentName: degree.department.name,
-    };
+      const degree = await prisma.degreeProgram.create({
+        data,
+        include: { department: true },
+      });
+      return {
+        id: degree.id,
+        departmentId: degree.departmentId,
+        name: degree.name,
+        intakeAcademicYear: degree.intakeAcademicYear,
+        departmentName: degree.department.name,
+      };
+    } catch (err) {
+      if (err instanceof DomainError) throw err;
+      throw new RepositoryError(
+        "Failed to create degree program",
+        ERROR_CODES.DB_FAILURE
+      );
+    }
   }
 
   /**
@@ -127,23 +143,31 @@ export class ProgramService extends BaseService {
    * @throws DomainError if program is not found
    */
   async getDegreeProgram(id: number): Promise<DegreeProgramDTO> {
-    const degree = await prisma.degreeProgram.findUnique({
-      where: { id },
-      include: { department: true },
-    });
-    if (!degree)
-      throw new DomainError(
-        "Degree Program not found",
-        ERROR_CODES.DEGREE_PROGRAM_NOT_FOUND,
-        404
+    try {
+      const degree = await prisma.degreeProgram.findUnique({
+        where: { id },
+        include: { department: true },
+      });
+      if (!degree)
+        throw new DomainError(
+          "Degree Program not found",
+          ERROR_CODES.DEGREE_PROGRAM_NOT_FOUND,
+          404
+        );
+      return {
+        id: degree.id,
+        departmentId: degree.departmentId,
+        name: degree.name,
+        intakeAcademicYear: degree.intakeAcademicYear,
+        departmentName: degree.department.name,
+      };
+    } catch (err) {
+      if (err instanceof DomainError) throw err;
+      throw new RepositoryError(
+        "Failed to get degree program",
+        ERROR_CODES.DB_FAILURE
       );
-    return {
-      id: degree.id,
-      departmentId: degree.departmentId,
-      name: degree.name,
-      intakeAcademicYear: degree.intakeAcademicYear,
-      departmentName: degree.department.name,
-    };
+    }
   }
 
   /**
@@ -162,18 +186,32 @@ export class ProgramService extends BaseService {
     }
   ): Promise<DegreeProgramDTO> {
     this.logger.info({ id, data }, "Updating degree program");
-    const degree = await prisma.degreeProgram.update({
-      where: { id },
-      data,
-      include: { department: true },
-    });
-    return {
-      id: degree.id,
-      departmentId: degree.departmentId,
-      name: degree.name,
-      intakeAcademicYear: degree.intakeAcademicYear,
-      departmentName: degree.department.name,
-    };
+    try {
+      const degree = await prisma.degreeProgram.update({
+        where: { id },
+        data,
+        include: { department: true },
+      });
+      return {
+        id: degree.id,
+        departmentId: degree.departmentId,
+        name: degree.name,
+        intakeAcademicYear: degree.intakeAcademicYear,
+        departmentName: degree.department.name,
+      };
+    } catch (err) {
+      if ((err as any).code === "P2025") {
+        throw new DomainError(
+          "Degree program not found",
+          ERROR_CODES.DEGREE_PROGRAM_NOT_FOUND,
+          404
+        );
+      }
+      throw new RepositoryError(
+        "Failed to update degree program",
+        ERROR_CODES.DB_FAILURE
+      );
+    }
   }
 
   /**
@@ -183,35 +221,63 @@ export class ProgramService extends BaseService {
    */
   async deleteDegreeProgram(id: number): Promise<void> {
     this.logger.info({ id }, "Deleting degree program");
-    await prisma.degreeProgram.delete({ where: { id } });
+    try {
+      await prisma.degreeProgram.delete({ where: { id } });
+    } catch (err) {
+      if ((err as any).code === "P2025") {
+        throw new DomainError(
+          "Degree program not found",
+          ERROR_CODES.DEGREE_PROGRAM_NOT_FOUND,
+          404
+        );
+      }
+      throw new RepositoryError(
+        "Failed to delete degree program",
+        ERROR_CODES.DB_FAILURE
+      );
+    }
   }
 
   async getDistinctIntakeYears(): Promise<string[]> {
-    const years = await prisma.degreeProgram.findMany({
-      select: {
-        intakeAcademicYear: true,
-      },
-      distinct: ["intakeAcademicYear"],
-      orderBy: {
-        intakeAcademicYear: "desc",
-      },
-    });
-    return years.map((y) => y.intakeAcademicYear);
+    try {
+      const years = await prisma.degreeProgram.findMany({
+        select: {
+          intakeAcademicYear: true,
+        },
+        distinct: ["intakeAcademicYear"],
+        orderBy: {
+          intakeAcademicYear: "desc",
+        },
+      });
+      return years.map((y) => y.intakeAcademicYear);
+    } catch (err) {
+      throw new RepositoryError(
+        "Failed to fetch intake years",
+        ERROR_CODES.DB_FAILURE
+      );
+    }
   }
 
   async getAllDegreePrograms(): Promise<
     { id: number; name: string; departmentId: number }[]
   > {
-    return await prisma.degreeProgram.findMany({
-      select: {
-        id: true,
-        name: true,
-        departmentId: true,
-      },
-      orderBy: {
-        name: "asc",
-      },
-    });
+    try {
+      return await prisma.degreeProgram.findMany({
+        select: {
+          id: true,
+          name: true,
+          departmentId: true,
+        },
+        orderBy: {
+          name: "asc",
+        },
+      });
+    } catch (err) {
+      throw new RepositoryError(
+        "Failed to fetch all degree programs",
+        ERROR_CODES.DB_FAILURE
+      );
+    }
   }
 }
 

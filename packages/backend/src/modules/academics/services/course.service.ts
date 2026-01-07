@@ -9,7 +9,7 @@ const __FP_SIG = "FP-20260105-US-SERVICE-COURSE-V2|HASH-PLACEHOLDER";
 import prisma from "../../../lib/db";
 import { BaseService } from "../../../common/services/base.service";
 import { AcademicCourseDTO } from "../academics.dto";
-import { DomainError, ERROR_CODES } from "../../../errors";
+import { DomainError, ERROR_CODES, RepositoryError } from "../../../errors";
 
 /**
  * Service: Course Management
@@ -47,41 +47,49 @@ export class CourseService extends BaseService {
       { departmentId, page, limit, search, facultyId },
       "Fetching courses"
     );
-    const where: any = {};
-    if (departmentId) where.departmentId = departmentId;
-    if (facultyId)
-      where.department = {
-        facultyId: facultyId,
-      };
+    try {
+      const where: any = {};
+      if (departmentId) where.departmentId = departmentId;
+      if (facultyId)
+        where.department = {
+          facultyId: facultyId,
+        };
 
-    if (search) {
-      where.OR = [
-        { name: { contains: search } },
-        { code: { contains: search } },
-      ];
+      if (search) {
+        where.OR = [
+          { name: { contains: search } },
+          { code: { contains: search } },
+        ];
+      }
+
+      const [total, courses] = await Promise.all([
+        prisma.course.count({ where }),
+        prisma.course.findMany({
+          where,
+          include: { department: true },
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+      ]);
+
+      const data = courses.map((c) => ({
+        id: c.id,
+        departmentId: c.departmentId,
+        code: c.code,
+        name: c.name,
+        credits: c.credits,
+        description: c.description,
+        departmentName: c.department.name,
+      }));
+
+      return { data, total };
+    } catch (err) {
+      if (err instanceof DomainError) throw err;
+      throw new RepositoryError(
+        "Failed to fetch courses",
+        ERROR_CODES.DB_FAILURE
+      );
     }
-
-    const [total, courses] = await Promise.all([
-      prisma.course.count({ where }),
-      prisma.course.findMany({
-        where,
-        include: { department: true },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-    ]);
-
-    const data = courses.map((c) => ({
-      id: c.id,
-      departmentId: c.departmentId,
-      code: c.code,
-      name: c.name,
-      credits: c.credits,
-      description: c.description,
-      departmentName: c.department.name,
-    }));
-
-    return { data, total };
   }
 
   /**
@@ -92,22 +100,29 @@ export class CourseService extends BaseService {
    */
   async searchCourses(query: string): Promise<AcademicCourseDTO[]> {
     this.logger.debug({ query }, "Searching courses");
-    const courses = await prisma.course.findMany({
-      where: {
-        OR: [{ name: { contains: query } }, { code: { contains: query } }],
-      },
-      include: { department: true },
-      take: 10,
-    });
-    return courses.map((c) => ({
-      id: c.id,
-      departmentId: c.departmentId,
-      code: c.code,
-      name: c.name,
-      credits: c.credits,
-      description: c.description,
-      departmentName: c.department.name,
-    }));
+    try {
+      const courses = await prisma.course.findMany({
+        where: {
+          OR: [{ name: { contains: query } }, { code: { contains: query } }],
+        },
+        include: { department: true },
+        take: 10,
+      });
+      return courses.map((c) => ({
+        id: c.id,
+        departmentId: c.departmentId,
+        code: c.code,
+        name: c.name,
+        credits: c.credits,
+        description: c.description,
+        departmentName: c.department.name,
+      }));
+    } catch (err) {
+      throw new RepositoryError(
+        "Failed to search courses",
+        ERROR_CODES.DB_FAILURE
+      );
+    }
   }
 
   /**
@@ -125,29 +140,45 @@ export class CourseService extends BaseService {
     description?: string;
   }): Promise<AcademicCourseDTO> {
     this.logger.info({ data }, "Creating course");
-    const dept = await prisma.department.findUnique({
-      where: { id: data.departmentId },
-    });
-    if (!dept)
-      throw new DomainError(
-        "Department not found",
-        ERROR_CODES.DEPARTMENT_NOT_FOUND,
-        404
-      );
+    try {
+      const dept = await prisma.department.findUnique({
+        where: { id: data.departmentId },
+      });
+      if (!dept)
+        throw new DomainError(
+          "Department not found",
+          ERROR_CODES.DEPARTMENT_NOT_FOUND,
+          404
+        );
 
-    const course = await prisma.course.create({
-      data,
-      include: { department: true },
-    });
-    return {
-      id: course.id,
-      departmentId: course.departmentId,
-      code: course.code,
-      name: course.name,
-      credits: course.credits,
-      description: course.description,
-      departmentName: course.department.name,
-    };
+      const course = await prisma.course.create({
+        data,
+        include: { department: true },
+      });
+      return {
+        id: course.id,
+        departmentId: course.departmentId,
+        code: course.code,
+        name: course.name,
+        credits: course.credits,
+        description: course.description,
+        departmentName: course.department.name,
+      };
+    } catch (err) {
+      if (err instanceof DomainError) throw err;
+      // Handle unique constraint violation for course code if needed, assuming P2002
+      if ((err as any).code === "P2002") {
+        throw new DomainError(
+          "Course code already exists",
+          ERROR_CODES.COURSE_ALREADY_EXISTS,
+          400
+        );
+      }
+      throw new RepositoryError(
+        "Failed to create course",
+        ERROR_CODES.DB_FAILURE
+      );
+    }
   }
 
   /**
@@ -158,25 +189,30 @@ export class CourseService extends BaseService {
    * @throws DomainError if course is not found
    */
   async getCourse(id: number): Promise<AcademicCourseDTO> {
-    const course = await prisma.course.findUnique({
-      where: { id },
-      include: { department: true },
-    });
-    if (!course)
-      throw new DomainError(
-        "Course not found",
-        ERROR_CODES.COURSE_NOT_FOUND,
-        404
-      );
-    return {
-      id: course.id,
-      departmentId: course.departmentId,
-      code: course.code,
-      name: course.name,
-      credits: course.credits,
-      description: course.description,
-      departmentName: course.department.name,
-    };
+    try {
+      const course = await prisma.course.findUnique({
+        where: { id },
+        include: { department: true },
+      });
+      if (!course)
+        throw new DomainError(
+          "Course not found",
+          ERROR_CODES.COURSE_NOT_FOUND,
+          404
+        );
+      return {
+        id: course.id,
+        departmentId: course.departmentId,
+        code: course.code,
+        name: course.name,
+        credits: course.credits,
+        description: course.description,
+        departmentName: course.department.name,
+      };
+    } catch (err) {
+      if (err instanceof DomainError) throw err;
+      throw new RepositoryError("Failed to get course", ERROR_CODES.DB_FAILURE);
+    }
   }
 
   /**
@@ -197,20 +233,34 @@ export class CourseService extends BaseService {
     }
   ): Promise<AcademicCourseDTO> {
     this.logger.info({ id, data }, "Updating course");
-    const course = await prisma.course.update({
-      where: { id },
-      data,
-      include: { department: true },
-    });
-    return {
-      id: course.id,
-      departmentId: course.departmentId,
-      code: course.code,
-      name: course.name,
-      credits: course.credits,
-      description: course.description,
-      departmentName: course.department.name,
-    };
+    try {
+      const course = await prisma.course.update({
+        where: { id },
+        data,
+        include: { department: true },
+      });
+      return {
+        id: course.id,
+        departmentId: course.departmentId,
+        code: course.code,
+        name: course.name,
+        credits: course.credits,
+        description: course.description,
+        departmentName: course.department.name,
+      };
+    } catch (err) {
+      if ((err as any).code === "P2025") {
+        throw new DomainError(
+          "Course not found",
+          ERROR_CODES.COURSE_NOT_FOUND,
+          404
+        );
+      }
+      throw new RepositoryError(
+        "Failed to update course",
+        ERROR_CODES.DB_FAILURE
+      );
+    }
   }
 
   /**
@@ -220,7 +270,21 @@ export class CourseService extends BaseService {
    */
   async deleteCourse(id: number): Promise<void> {
     this.logger.info({ id }, "Deleting course");
-    await prisma.course.delete({ where: { id } });
+    try {
+      await prisma.course.delete({ where: { id } });
+    } catch (err) {
+      if ((err as any).code === "P2025") {
+        throw new DomainError(
+          "Course not found",
+          ERROR_CODES.COURSE_NOT_FOUND,
+          404
+        );
+      }
+      throw new RepositoryError(
+        "Failed to delete course",
+        ERROR_CODES.DB_FAILURE
+      );
+    }
   }
 }
 

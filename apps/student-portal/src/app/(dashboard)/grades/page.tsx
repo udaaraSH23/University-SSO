@@ -91,9 +91,20 @@ export default async function GradesPage({
       if (semester && g.semester !== semester) match = false;
       return match;
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Failed to fetch grades:", err);
-    // TODO: Implement a user-facing error state or boundary
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center p-8">
+          <h2 className="text-xl font-bold text-red-600 mb-2">
+            Failed to load grades
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            {err?.message || "Please try again later."}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // Calculate Weighted GPA: (Sum of (Grade Point * Credits)) / (Total Credits)

@@ -40,6 +40,7 @@ export interface PaginatedStudentsDTO {
 }
 
 export interface CourseDTO {
+  enrollmentId: number; // Unique ID for the student's enrollment
   courseId: number;
   code: string;
   name: string;

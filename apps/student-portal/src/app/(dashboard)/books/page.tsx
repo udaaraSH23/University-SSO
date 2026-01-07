@@ -45,7 +45,7 @@ export default async function BooksPage({
 
   let profile;
   try {
-    profile = await studentService.getProfile(email);
+    profile = await api.execute(() => studentService.getProfile(email));
   } catch (error) {
     console.error("Failed to fetch profile", error);
     return <div>Error loading profile.</div>;
@@ -65,7 +65,9 @@ export default async function BooksPage({
       // avoiding personal book fetches to keep the view focused and performant.
       const { query: queryParam, page: pageParam } = await searchParams;
       const page = Number(pageParam) || 1;
-      const result = await bookReader.searchBooks(query, page, 10);
+      const result = await api.execute(() =>
+        bookReader.searchBooks(query, page, 10)
+      );
       searchResults = result.data;
       paginationMeta = {
         page: result.meta.page,

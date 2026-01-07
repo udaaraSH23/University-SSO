@@ -10,7 +10,7 @@ import {
   WSO2UserCreateDTO,
   WSO2UserUpdateDTO,
 } from "./identity.interface";
-import { DomainError, ERROR_CODES } from "../../errors";
+import { DomainError, ERROR_CODES, RepositoryError } from "../../errors";
 
 const __FP_SIG = "FP-20260105-AG-SERVICE-IDENTITY-V2|HASH-PLACEHOLDER";
 
@@ -74,8 +74,12 @@ export class IdentityService implements IIdentityService {
       const data = await response.json();
       return data.access_token;
     } catch (error) {
+      if (error instanceof DomainError) throw error;
       logger.error({ error }, "Error in getManagementToken");
-      throw error;
+      throw new RepositoryError(
+        "Failed to connect to Identity Server",
+        ERROR_CODES.IDENTITY_SERVER_ERROR
+      );
     }
   }
 
@@ -88,19 +92,19 @@ export class IdentityService implements IIdentityService {
    */
   async createUser(data: WSO2UserCreateDTO): Promise<string> {
     logger.debug({ userName: data.userName }, "Creating user in WSO2");
-    const token = await this.getManagementToken();
-
-    const scimData = {
-      schemas: ["urn:ietf:params:scim:schemas:core:2.0:User"],
-      userName: data.userName,
-      emails: data.emails, // e.g., [{ value: "user@example.com", primary: true }]
-      name: data.name, // { givenName: "First", familyName: "Last" }
-      "urn:scim:wso2:schema": {
-        askPassword: true, // Always invite user to set their own password
-      },
-    };
-
     try {
+      const token = await this.getManagementToken();
+
+      const scimData = {
+        schemas: ["urn:ietf:params:scim:schemas:core:2.0:User"],
+        userName: data.userName,
+        emails: data.emails, // e.g., [{ value: "user@example.com", primary: true }]
+        name: data.name, // { givenName: "First", familyName: "Last" }
+        "urn:scim:wso2:schema": {
+          askPassword: true, // Always invite user to set their own password
+        },
+      };
+
       const response = await fetch(`${this.baseUrl}/scim2/Users`, {
         method: "POST",
         headers: {
@@ -123,8 +127,12 @@ export class IdentityService implements IIdentityService {
       const result = await response.json();
       return result.id;
     } catch (error) {
+      if (error instanceof DomainError) throw error;
       logger.error({ error }, "Error in createUser");
-      throw error;
+      throw new RepositoryError(
+        "Failed to create user in Identity Server",
+        ERROR_CODES.IDENTITY_SERVER_ERROR
+      );
     }
   }
 
@@ -142,63 +150,72 @@ export class IdentityService implements IIdentityService {
     username?: string
   ): Promise<void> {
     logger.debug({ userId, groupName }, "Adding user to group in WSO2");
-    const token = await this.getManagementToken();
+    try {
+      const token = await this.getManagementToken();
 
-    // First find the group ID
-    const groupResponse = await fetch(
-      `${this.baseUrl}/scim2/Groups?filter=displayName eq ${groupName}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    const groups = await groupResponse.json();
-    logger.debug({ groups }, "WSO2 Group Data");
-    const groupId = groups.Resources?.[0]?.id;
-
-    if (!groupId) {
-      logger.error({ groupName }, "Group not found in WSO2");
-      throw new DomainError(
-        `Group ${groupName} not found in Identity Server`,
-        ERROR_CODES.RESOURCE_NOT_FOUND,
-        404
-      );
-    }
-
-    const memberValue: any = { value: userId };
-    if (username) {
-      memberValue.display = username;
-    }
-
-    const patchData = {
-      schemas: ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
-      Operations: [
+      // First find the group ID
+      const groupResponse = await fetch(
+        `${this.baseUrl}/scim2/Groups?filter=displayName eq ${groupName}`,
         {
-          op: "add",
-          path: "members",
-          value: [memberValue],
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const groups = await groupResponse.json();
+      logger.debug({ groups }, "WSO2 Group Data");
+      const groupId = groups.Resources?.[0]?.id;
+
+      if (!groupId) {
+        logger.error({ groupName }, "Group not found in WSO2");
+        throw new DomainError(
+          `Group ${groupName} not found in Identity Server`,
+          ERROR_CODES.RESOURCE_NOT_FOUND,
+          404
+        );
+      }
+
+      const memberValue: any = { value: userId };
+      if (username) {
+        memberValue.display = username;
+      }
+
+      const patchData = {
+        schemas: ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+        Operations: [
+          {
+            op: "add",
+            path: "members",
+            value: [memberValue],
+          },
+        ],
+      };
+
+      logger.debug({ patchData }, "WSO2 Patch Data");
+
+      const response = await fetch(`${this.baseUrl}/scim2/Groups/${groupId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/scim+json",
+          Authorization: `Bearer ${token}`,
         },
-      ],
-    };
+        body: JSON.stringify(patchData),
+      });
 
-    logger.debug({ patchData }, "WSO2 Patch Data");
-
-    const response = await fetch(`${this.baseUrl}/scim2/Groups/${groupId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/scim+json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(patchData),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      logger.error({ error }, "Failed to add user to group");
-      throw new DomainError(
-        "Failed to assign role in Identity Server",
-        ERROR_CODES.IDENTITY_SERVER_ERROR,
-        response.status
+      if (!response.ok) {
+        const error = await response.text();
+        logger.error({ error }, "Failed to add user to group");
+        throw new DomainError(
+          "Failed to assign role in Identity Server",
+          ERROR_CODES.IDENTITY_SERVER_ERROR,
+          response.status
+        );
+      }
+    } catch (error) {
+      if (error instanceof DomainError) throw error;
+      logger.error({ error }, "Error in addUserToGroup");
+      throw new RepositoryError(
+        "Failed to assign group in Identity Server",
+        ERROR_CODES.IDENTITY_SERVER_ERROR
       );
     }
   }
@@ -212,9 +229,9 @@ export class IdentityService implements IIdentityService {
    */
   async generateInviteLink(email: string): Promise<string> {
     logger.debug({ email }, "Generating invite link in WSO2");
-    const token = await this.getManagementToken();
-
     try {
+      const token = await this.getManagementToken();
+
       const response = await fetch(
         `${this.baseUrl}/o/api/users/v1/offline-invite-link/`,
         {
@@ -240,8 +257,12 @@ export class IdentityService implements IIdentityService {
       const result = await response.json();
       return result.inviteLink || "";
     } catch (error) {
+      if (error instanceof DomainError) throw error;
       logger.error({ error }, "Error in generateInviteLink");
-      throw error;
+      throw new RepositoryError(
+        "Failed to generate invite link",
+        ERROR_CODES.IDENTITY_SERVER_ERROR
+      );
     }
   }
 
@@ -254,36 +275,45 @@ export class IdentityService implements IIdentityService {
    */
   async updateUser(id: string, data: WSO2UserUpdateDTO): Promise<void> {
     logger.debug({ id }, "Updating user in WSO2");
-    const token = await this.getManagementToken();
+    try {
+      const token = await this.getManagementToken();
 
-    const patchData = {
-      schemas: ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
-      Operations: [
-        {
-          op: "replace",
-          value: {
-            name: data.name,
+      const patchData = {
+        schemas: ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+        Operations: [
+          {
+            op: "replace",
+            value: {
+              name: data.name,
+            },
           },
+        ],
+      };
+
+      const response = await fetch(`${this.baseUrl}/scim2/Users/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/scim+json",
+          Authorization: `Bearer ${token}`,
         },
-      ],
-    };
+        body: JSON.stringify(patchData),
+      });
 
-    const response = await fetch(`${this.baseUrl}/scim2/Users/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/scim+json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(patchData),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      logger.error({ error }, "Failed to update WSO2 user");
-      throw new DomainError(
+      if (!response.ok) {
+        const error = await response.text();
+        logger.error({ error }, "Failed to update WSO2 user");
+        throw new DomainError(
+          "Failed to update user in Identity Server",
+          ERROR_CODES.IDENTITY_SERVER_ERROR,
+          response.status
+        );
+      }
+    } catch (error) {
+      if (error instanceof DomainError) throw error;
+      logger.error({ error }, "Error in updateUser");
+      throw new RepositoryError(
         "Failed to update user in Identity Server",
-        ERROR_CODES.IDENTITY_SERVER_ERROR,
-        response.status
+        ERROR_CODES.IDENTITY_SERVER_ERROR
       );
     }
   }
@@ -295,9 +325,8 @@ export class IdentityService implements IIdentityService {
    */
   async deleteUser(id: string): Promise<void> {
     logger.debug({ id }, "Deleting user from WSO2");
-    const token = await this.getManagementToken();
-
     try {
+      const token = await this.getManagementToken();
       const response = await fetch(`${this.baseUrl}/scim2/Users/${id}`, {
         method: "DELETE",
         headers: {
@@ -315,8 +344,12 @@ export class IdentityService implements IIdentityService {
         );
       }
     } catch (error) {
+      if (error instanceof DomainError) throw error;
       logger.error({ error }, "Error in deleteUser");
-      throw error;
+      throw new RepositoryError(
+        "Failed to delete user in Identity Server",
+        ERROR_CODES.IDENTITY_SERVER_ERROR
+      );
     }
   }
 
@@ -328,9 +361,8 @@ export class IdentityService implements IIdentityService {
    */
   async getGroups(): Promise<any[]> {
     logger.debug("Fetching groups from WSO2");
-    const token = await this.getManagementToken();
-
     try {
+      const token = await this.getManagementToken();
       const response = await fetch(`${this.baseUrl}/scim2/Groups`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -350,8 +382,12 @@ export class IdentityService implements IIdentityService {
       const data = await response.json();
       return data.Resources || [];
     } catch (error) {
+      if (error instanceof DomainError) throw error;
       logger.error({ error }, "Error in getGroups");
-      throw error;
+      throw new RepositoryError(
+        "Failed to fetch groups from Identity Server",
+        ERROR_CODES.IDENTITY_SERVER_ERROR
+      );
     }
   }
 }

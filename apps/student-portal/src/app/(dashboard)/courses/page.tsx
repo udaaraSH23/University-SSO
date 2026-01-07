@@ -61,10 +61,11 @@ export default async function CoursesPage({
     );
   } catch (err: any) {
     console.error("Failed to fetch courses:", err);
-    if (err.message === "Student profile not found") {
+    // 4. Handling errors gracefully
+    if (err?.code === "STUDENT_NOT_FOUND") {
       error = "Profile not found. Please contact support.";
     } else {
-      error = "Failed to load courses. Please try again later.";
+      error = err?.message || "Failed to load courses. Please try again later.";
     }
   }
 

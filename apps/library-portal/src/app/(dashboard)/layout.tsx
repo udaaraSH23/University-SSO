@@ -10,6 +10,7 @@ import DashboardShell from "../../components/dashboard/DashboardShell";
 import { auth } from "@repo/auth";
 import { adminService } from "@repo/backend";
 import { redirect } from "next/navigation";
+import { api } from "../../lib/api";
 
 const __FP_SIG = "FP-20251225-AG-LIB-LAYOUT|HASH-PLACEHOLDER";
 
@@ -30,16 +31,24 @@ export default async function DashboardLayout({
     role: "Library Manager",
   };
 
+  let apiError: string | undefined;
+
   try {
-    const profile = await adminService.getProfile(session.user.email);
+    const profile = await api.execute(() =>
+      adminService.getProfile(session.user.email!)
+    );
     user = {
       name: profile.fullName,
       role: profile.staffType,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to fetch admin profile:", error);
-    // Fallback usage is already set
+    apiError = error.message;
   }
 
-  return <DashboardShell user={user}>{children}</DashboardShell>;
+  return (
+    <DashboardShell user={user} apiError={apiError}>
+      {children}
+    </DashboardShell>
+  );
 }

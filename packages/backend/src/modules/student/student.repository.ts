@@ -363,12 +363,20 @@ export class StudentRepository {
    * @returns StudentProfile with User relation or null
    */
   async findById(id: number) {
-    return prisma.studentProfile.findUnique({
-      where: { id },
-      include: {
-        user: true,
-      },
-    });
+    try {
+      return await prisma.studentProfile.findUnique({
+        where: { id },
+        include: {
+          user: true,
+        },
+      });
+    } catch (error) {
+      logger.error({ error, id }, "Failed to find student by ID");
+      throw new RepositoryError(
+        "Failed to find student by ID",
+        ERROR_CODES.DB_FAILURE
+      );
+    }
   }
 
   /**

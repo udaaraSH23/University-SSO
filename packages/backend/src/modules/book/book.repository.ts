@@ -6,6 +6,7 @@
 
 import prisma from "../../lib/db";
 import { createLogger } from "@repo/logger";
+import { RepositoryError, ERROR_CODES } from "../../errors";
 
 const logger = createLogger({ service: "backend-book-repo" });
 
@@ -50,6 +51,8 @@ export class BookRepository {
             available_copies: true,
             total_copies: true,
             year: true,
+            description: true,
+            publisher: true,
           },
         }),
         prisma.book.count({ where }),
@@ -62,7 +65,10 @@ export class BookRepository {
       return { books, total };
     } catch (error) {
       logger.error({ error, query, page, limit }, "Failed to search books");
-      throw error;
+      throw new RepositoryError(
+        "Failed to search books",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -87,7 +93,10 @@ export class BookRepository {
       return result;
     } catch (error) {
       logger.error({ error, bookId }, "Failed to find book by ID");
-      throw error;
+      throw new RepositoryError(
+        "Failed to find book by ID",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 }

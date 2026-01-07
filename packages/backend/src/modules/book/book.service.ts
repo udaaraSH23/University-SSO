@@ -13,7 +13,7 @@ import { BookDTO } from "../student/student.dto";
 import prisma from "../../lib/db";
 import { CreateBookInput, UpdateBookInput } from "./book.schema";
 import { Book } from "@repo/database";
-import { DomainError, ERROR_CODES } from "../../errors";
+import { DomainError, ERROR_CODES, RepositoryError } from "../../errors";
 
 const bookRepository = new BookRepository();
 
@@ -48,9 +48,6 @@ export class BookReader extends BaseService implements IBookReader {
     try {
       const book = await bookRepository.findBookById(id);
       if (!book) {
-        // We might want to throw 404 here, relying on BaseService or standard error
-        // Since handleError throws, we can construct the error first.
-        // Actually handleError wraps it.
         throw new DomainError(
           "Book not found",
           ERROR_CODES.BOOK_NOT_FOUND,
@@ -71,7 +68,13 @@ export class BookReader extends BaseService implements IBookReader {
           "https://images.unsplash.com/photo-1609866138210-84bb60719e37?auto=format&fit=crop&q=80&w=1000",
       };
     } catch (err: unknown) {
-      this.handleError(err, "Failed to get book details");
+      if (err instanceof DomainError) throw err;
+      if (err instanceof RepositoryError) throw err;
+      throw new DomainError(
+        "Failed to get book details",
+        ERROR_CODES.INTERNAL_ERROR,
+        500
+      );
     }
   }
 
@@ -97,9 +100,9 @@ export class BookReader extends BaseService implements IBookReader {
         title: book.title,
         author: book.author,
         isbn: book.isbn,
-        publisher: "Unknown Publisher",
+        publisher: book.publisher || "Unknown Publisher",
         year: book.year,
-        description: "Click to view description",
+        description: book.description || "Click to view description",
         isAvailable: book.available_copies > 0,
         coverImage:
           "https://images.unsplash.com/photo-1609866138210-84bb60719e37?auto=format&fit=crop&q=80&w=1000",
@@ -115,7 +118,12 @@ export class BookReader extends BaseService implements IBookReader {
         },
       };
     } catch (err) {
-      this.handleError(err, "Failed to search books");
+      if (err instanceof RepositoryError) throw err;
+      throw new DomainError(
+        "Failed to search books",
+        ERROR_CODES.INTERNAL_ERROR,
+        500
+      );
     }
   }
 }
@@ -129,10 +137,6 @@ export class BookReader extends BaseService implements IBookReader {
 export class BookManager extends BookReader implements IBookManager {
   constructor() {
     super();
-    // Override logger service name?
-    // Typescript might complain if we try to reassign readonly logger.
-    // However, since it is protected, we can access it but not assign if readonly.
-    // We can just use the inherited logger.
   }
 
   /**
@@ -144,6 +148,7 @@ export class BookManager extends BookReader implements IBookManager {
   async createBook(data: CreateBookInput): Promise<Book> {
     this.logger.debug({ data }, "createBook called");
     try {
+      // In a real scenario, check for duplicates here or handle DB unique constraint error
       const result = await prisma.book.create({
         data: {
           ...data,
@@ -152,7 +157,18 @@ export class BookManager extends BookReader implements IBookManager {
       });
       return result;
     } catch (err) {
-      this.handleError(err, "Failed to create book");
+      // Assume prisma error code for unique constraint is P2002
+      if ((err as any).code === "P2002") {
+        throw new DomainError(
+          "Book with this ISBN already exists",
+          ERROR_CODES.VALIDATION_ERROR,
+          409
+        );
+      }
+      throw new RepositoryError(
+        "Failed to create book",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -172,7 +188,18 @@ export class BookManager extends BookReader implements IBookManager {
       });
       return result;
     } catch (err) {
-      this.handleError(err, "Failed to update book");
+      if ((err as any).code === "P2025") {
+        // Record not found
+        throw new DomainError(
+          "Book not found for update",
+          ERROR_CODES.BOOK_NOT_FOUND,
+          404
+        );
+      }
+      throw new RepositoryError(
+        "Failed to update book",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -190,7 +217,17 @@ export class BookManager extends BookReader implements IBookManager {
       });
       return result;
     } catch (err) {
-      this.handleError(err, "Failed to delete book");
+      if ((err as any).code === "P2025") {
+        throw new DomainError(
+          "Book not found for deletion",
+          ERROR_CODES.BOOK_NOT_FOUND,
+          404
+        );
+      }
+      throw new RepositoryError(
+        "Failed to delete book",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -206,10 +243,14 @@ export class BookManager extends BookReader implements IBookManager {
       const book = await bookRepository.findBookById(id);
       return book;
     } catch (err) {
-      this.handleError(err, "Failed to get book by id");
+      if (err instanceof RepositoryError) throw err;
+      throw new DomainError(
+        "Failed to get book by id",
+        ERROR_CODES.INTERNAL_ERROR,
+        500
+      );
     }
   }
 }
-
 export const bookReader = new BookReader();
 export const bookManager = new BookManager();

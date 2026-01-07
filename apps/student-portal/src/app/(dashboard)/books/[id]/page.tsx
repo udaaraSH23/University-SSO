@@ -10,6 +10,7 @@ import { MoveLeft, BookOpen, LogOut } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import BookDetailView from "../../../../components/dashboard/books/BookDetailView";
+import { api } from "../../../../lib/api";
 
 const __FP_SIG = "FP-20251225-SP-482910|HASH-PLACEHOLDER";
 
@@ -34,12 +35,23 @@ export default async function BookDetailsPage({
   }
 
   const { id } = await params;
-  const book = await bookReader.getBookDetails(id);
+  let book;
+  let error;
 
-  if (!book) {
+  try {
+    book = await api.execute(() => bookReader.getBookDetails(id));
+  } catch (err: any) {
+    if (err?.code === "BOOK_NOT_FOUND") {
+      // Handled below by checking if book is undefined/null
+    } else {
+      error = "Failed to load book details.";
+    }
+  }
+
+  if (!book || error) {
     return (
       <div className="p-8 text-center text-gray-500">
-        <h1 className="text-xl font-bold mb-4">Book Not Found</h1>
+        <h1 className="text-xl font-bold mb-4">{error || "Book Not Found"}</h1>
         <Link href="/books" className="text-primary hover:underline">
           Return to Books
         </Link>

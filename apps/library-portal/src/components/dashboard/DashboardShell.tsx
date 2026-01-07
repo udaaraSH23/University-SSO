@@ -8,6 +8,8 @@
 
 import { DashboardShell as GenericDashboardShell, SidebarItem } from "@repo/ui";
 import { LayoutDashboard, BookOpen, Users } from "lucide-react";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 const __FP_SIG = "FP-20251226-AG-LIB-SHELL-REFACTOR|HASH-PLACEHOLDER";
 
@@ -17,6 +19,7 @@ interface DashboardShellProps {
     name: string;
     role: string;
   };
+  apiError?: string;
 }
 
 /**
@@ -29,11 +32,19 @@ interface DashboardShellProps {
  * @param {object} props.user - User profile information for the sidebar
  * @param {string} props.user.name - Display name of the user
  * @param {string} props.user.role - Role/Title of the user
+ * @param {string} props.apiError - Optional error message to display
  */
 export default function DashboardShell({
   children,
   user,
+  apiError,
 }: DashboardShellProps) {
+  useEffect(() => {
+    if (apiError) {
+      toast.error(apiError);
+    }
+  }, [apiError]);
+
   const sidebarItems: SidebarItem[] = [
     {
       href: "/",

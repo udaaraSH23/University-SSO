@@ -128,7 +128,7 @@ export default function CourseGrid({ courses }: CourseGridProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {groupedCourses[sectionTitle].map((course, index) => (
               <CourseCard
-                key={course.courseId}
+                key={course.enrollmentId || `${course.courseId}-${index}`}
                 code={course.code}
                 title={course.name}
                 instructor="Prof. N/A" // Instructor not in DTO yet

@@ -10,7 +10,7 @@ const __FP_SIG = "FP-20260105-AG-SERVICE-LENDING-V2|HASH-PLACEHOLDER";
 import { BorrowRecord, Prisma } from "@repo/database";
 import { ILendingService, BookAvailabilityResult } from "./lending.interface";
 import { BaseService } from "../../common/services/base.service";
-import { DomainError, ERROR_CODES } from "../../errors";
+import { DomainError, ERROR_CODES, RepositoryError } from "../../errors";
 
 /**
  * Service: Lending Management
@@ -89,7 +89,8 @@ export class LendingService extends BaseService implements ILendingService {
       );
       return result;
     } catch (err) {
-      this.handleError(err, "Failed to issue book");
+      if (err instanceof DomainError) throw err;
+      throw new RepositoryError("Failed to issue book", ERROR_CODES.DB_FAILURE);
     }
   }
 
@@ -141,7 +142,11 @@ export class LendingService extends BaseService implements ILendingService {
 
       return this.returnBook(record.id);
     } catch (err) {
-      this.handleError(err, "Failed to return book by details");
+      if (err instanceof DomainError) throw err;
+      throw new RepositoryError(
+        "Failed to return book by details",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -191,7 +196,11 @@ export class LendingService extends BaseService implements ILendingService {
       );
       return result;
     } catch (err) {
-      this.handleError(err, "Failed to return book");
+      if (err instanceof DomainError) throw err;
+      throw new RepositoryError(
+        "Failed to return book",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -224,7 +233,10 @@ export class LendingService extends BaseService implements ILendingService {
       });
       return result;
     } catch (err) {
-      this.handleError(err, "Failed to get pending books");
+      throw new RepositoryError(
+        "Failed to get pending books",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -282,7 +294,10 @@ export class LendingService extends BaseService implements ILendingService {
       };
       return stats;
     } catch (err) {
-      this.handleError(err, "Failed to get library stats");
+      throw new RepositoryError(
+        "Failed to get library stats",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -344,7 +359,10 @@ export class LendingService extends BaseService implements ILendingService {
       );
       return results;
     } catch (err) {
-      this.handleError(err, "Failed to check book availability");
+      throw new RepositoryError(
+        "Failed to check book availability",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -360,7 +378,10 @@ export class LendingService extends BaseService implements ILendingService {
       ]);
       return { totalStudents: total, registeredStudents: registered };
     } catch (err) {
-      this.handleError(err, "Failed to get student library stats");
+      throw new RepositoryError(
+        "Failed to get student library stats",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -400,7 +421,10 @@ export class LendingService extends BaseService implements ILendingService {
         currentLoans: s.borrowRecords,
       }));
     } catch (err) {
-      this.handleError(err, "Failed to search students");
+      throw new RepositoryError(
+        "Failed to search students for library",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -445,7 +469,11 @@ export class LendingService extends BaseService implements ILendingService {
 
       return { history, total };
     } catch (err) {
-      this.handleError(err, "Failed to get student borrow history");
+      if (err instanceof DomainError) throw err;
+      throw new RepositoryError(
+        "Failed to get student borrow history",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -472,7 +500,11 @@ export class LendingService extends BaseService implements ILendingService {
 
       return newStatus;
     } catch (err) {
-      this.handleError(err, "Failed to toggle registration");
+      if (err instanceof DomainError) throw err;
+      throw new RepositoryError(
+        "Failed to toggle registration",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 
@@ -500,6 +532,7 @@ export class LendingService extends BaseService implements ILendingService {
           },
           include: {
             studentProfile: true,
+            book: true,
           },
           orderBy: { return_date: "desc" },
           take: 20,
@@ -508,7 +541,10 @@ export class LendingService extends BaseService implements ILendingService {
 
       return { active, history };
     } catch (err) {
-      this.handleError(err, "Failed to get book borrow history");
+      throw new RepositoryError(
+        "Failed to get book borrow history",
+        ERROR_CODES.DB_FAILURE
+      );
     }
   }
 }

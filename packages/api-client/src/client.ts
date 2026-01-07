@@ -28,12 +28,52 @@ const SAFE_ERROR_MESSAGES: Partial<Record<string, string>> = {
     "The requested resource could not be found.",
   [ERROR_CODES.STUDENT_NOT_FOUND]: "Student profile not found.",
   [ERROR_CODES.USER_NOT_FOUND]: "User account not found.",
+  [ERROR_CODES.BOOK_NOT_FOUND]: "Book not found.",
+  [ERROR_CODES.BOOK_ALREADY_EXISTS]: "Book already exists.",
+  [ERROR_CODES.BOOK_UNAVAILABLE]: "Book is currently unavailable.",
+  [ERROR_CODES.COURSE_NOT_FOUND]: "Course not found.",
+  [ERROR_CODES.OFFERING_NOT_FOUND]: "Course offering not found.",
+  [ERROR_CODES.DEGREE_PROGRAM_NOT_FOUND]: "Degree program not found.",
+  [ERROR_CODES.LENDING_STUDENT_NOT_REGISTERED]:
+    "You are not registered for library facilities.",
+  [ERROR_CODES.LENDING_BOOK_UNAVAILABLE]: "This book is currently unavailable.",
+  [ERROR_CODES.LENDING_ALREADY_BORROWED]:
+    "You have already borrowed this book.",
+  [ERROR_CODES.LENDING_RECORD_NOT_FOUND]: "Borrow record not found.",
+  [ERROR_CODES.IDENTITY_SERVER_ERROR]:
+    "Identity service is temporarily unavailable.",
 };
 
 export class ApiClient {
   /**
+   * Validates data against a Zod-like schema.
+   * @param schema - Schema with a parse method (e.g., Zod schema)
+   * @param data - Data to validate
+   * @returns Validated data
+   * @throws ApiClientError if validation fails
+   */
+  public validate<T>(
+    schema: { parse: (data: unknown) => T },
+    data: unknown
+  ): T {
+    try {
+      return schema.parse(data);
+    } catch (error: any) {
+      // Extract specific validation messages if possible (Zod specific)
+      const details = error.errors || error.message;
+      throw new ApiClientError(
+        "Validation failed",
+        ERROR_CODES.VALIDATION_ERROR,
+        details,
+        error
+      );
+    }
+  }
+
+  /**
    * Executes the provided async function and handles errors.
    * @param fn - The async function to execute (e.g. service call)
+   * @returns The result of the function
    */
   public async execute<T>(fn: () => Promise<T>): Promise<T> {
     try {

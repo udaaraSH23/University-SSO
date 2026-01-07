@@ -2,6 +2,7 @@ import { DashboardHeader } from "@repo/ui";
 import BookForm from "../../../../../components/books/BookForm";
 import { bookManager } from "@repo/backend";
 import { notFound } from "next/navigation";
+import { api } from "../../../../../lib/api";
 
 export default async function EditBookPage({
   params,
@@ -15,7 +16,12 @@ export default async function EditBookPage({
     notFound();
   }
 
-  const book = await bookManager.getBookById(bookId);
+  let book;
+  try {
+    book = await api.execute(() => bookManager.getBookById(bookId));
+  } catch (error) {
+    console.error("Failed to fetch book for editing:", error);
+  }
 
   if (!book) {
     notFound();

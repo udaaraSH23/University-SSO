@@ -6,6 +6,7 @@
 
 import { DashboardHeader } from "@repo/ui";
 import { lendingService } from "@repo/backend";
+import { api } from "../../../lib/api";
 import StudentStats from "../../../components/students/StudentStats";
 import StudentSearch from "../../../components/students/StudentSearch";
 import StudentDetails from "../../../components/students/StudentDetails";
@@ -33,28 +34,52 @@ export default async function StudentsPage({
   const page = Number(resolvedSearchParams.page) || 1;
   const LIMIT = 5; // Minimum 5 as requested
 
-  const stats = await lendingService.getStudentLibraryStats();
-
-  let matchingStudents = [];
-  let selectedStudent = null;
+  /* eslint-disable prefer-const */
+  let stats: any = {};
+  let matchingStudents: any[] = [];
+  let selectedStudent: any = null;
   let history: { history: BorrowRecord[]; total: number } = {
     history: [],
     total: 0,
   };
+  /* eslint-enable prefer-const */
 
-  if (query) {
-    matchingStudents = await lendingService.searchStudentsForLibrary(query);
-    // If we have matches, select the first one for the "Details" view if no specific ID is selected.
-    // Ideally we would have a list to select from, but for now defaulting to first match.
-    if (matchingStudents.length > 0) {
-      selectedStudent = matchingStudents[0];
-      // Fetch history for selected student
-      history = await lendingService.getStudentBorrowHistory(
-        selectedStudent.studentId,
-        page,
-        LIMIT
+  try {
+    // Parallel fetch for stats and potentially search if query exists
+    const promiseMap: any = {
+      stats: api.execute(() => lendingService.getStudentLibraryStats()),
+    };
+
+    if (query) {
+      promiseMap.search = api.execute(() =>
+        lendingService.searchStudentsForLibrary(query)
       );
     }
+
+    const results = await Promise.all(Object.values(promiseMap));
+    stats = results[0];
+
+    if (query && results[1]) {
+      matchingStudents = results[1] as any[];
+      if (matchingStudents.length > 0) {
+        selectedStudent = matchingStudents[0];
+        // Fetch history for selected student securely
+        try {
+          history = await api.execute(() =>
+            lendingService.getStudentBorrowHistory(
+              selectedStudent.studentId,
+              page,
+              LIMIT
+            )
+          );
+        } catch (histError) {
+          console.error("Failed to fetch student history", histError);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch student data", error);
+    // UI handles empty states gracefully
   }
 
   return (

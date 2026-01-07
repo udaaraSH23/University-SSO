@@ -13,6 +13,7 @@ import BookAvailability from "../../components/dashboard/BookAvailability";
 export const __FP_SIG = "FP-20251225-AG-LIB-PAGE|HASH-PLACEHOLDER";
 
 import { lendingService } from "@repo/backend";
+import { api } from "../../lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,9 @@ export const dynamic = "force-dynamic";
  * Fetches data server-side to ensure real-time status visibility.
  */
 export default async function LibraryDashboardPage() {
-  const stats = await lendingService.getLibraryDashboardStats();
+  const stats = await api.execute(() =>
+    lendingService.getLibraryDashboardStats()
+  );
 
   return (
     <div className="p-8 max-w-7xl mx-auto w-full space-y-8">

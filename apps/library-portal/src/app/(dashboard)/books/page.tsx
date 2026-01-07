@@ -6,6 +6,7 @@
 
 import { DashboardHeader } from "@repo/ui";
 import { lendingService, bookReader } from "@repo/backend";
+import { api } from "../../../lib/api";
 import BookStats from "../../../components/books/BookStats";
 import BooksTable from "../../../components/books/BooksTable";
 
@@ -29,10 +30,24 @@ export default async function BooksPage({
   const query = resolvedSearchParams.query || "";
   const limit = 10;
 
-  const [stats, booksResult] = await Promise.all([
-    lendingService.getLibraryDashboardStats(),
-    bookReader.searchBooks(query, page, limit),
-  ]);
+  /* eslint-disable prefer-const */
+  let stats: any = {};
+  let booksResult: any = { data: [], meta: { totalPages: 1, page: 1 } };
+  /* eslint-enable prefer-const */
+
+  try {
+    const [fetchedStats, fetchedBooks] = await api.execute(() =>
+      Promise.all([
+        lendingService.getLibraryDashboardStats(),
+        bookReader.searchBooks(query, page, limit),
+      ])
+    );
+    stats = fetchedStats;
+    booksResult = fetchedBooks;
+  } catch (error) {
+    console.error("Failed to fetch books data:", error);
+    // UI will render with empty/default data, Toast handles notification via API Client
+  }
 
   return (
     <div className="p-8 max-w-7xl mx-auto w-full space-y-8">
