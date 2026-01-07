@@ -98,7 +98,7 @@ export class AdminService extends BaseService implements IAdminService {
       // 1. Create user in WSO2 SCIM2
       const wso2Id = await identityService.createUser({
         userName: data.username,
-        emails: [data.email],
+        emails: [{ value: data.email, primary: true }],
         name: {
           givenName: data.fullName.split(" ")[0] || "Staff",
           familyName: data.fullName.split(" ").slice(1).join(" ") || "User",

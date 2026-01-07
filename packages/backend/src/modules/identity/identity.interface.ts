@@ -12,7 +12,7 @@ const __FP_SIG = "FP-20251231-AG-INTERFACE-IDENTITY|HASH-PLACEHOLDER";
  */
 export interface WSO2UserCreateDTO {
   userName: string;
-  emails: string[];
+  emails: { value: string; primary?: boolean; type?: string }[];
   name: {
     givenName: string;
     familyName: string;
