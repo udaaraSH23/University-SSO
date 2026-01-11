@@ -27,7 +27,7 @@ export class OrganizationService extends BaseService {
       },
       orderBy: { name: "asc" },
     });
-    return faculties.map((f) => ({
+    return faculties.map((f: any) => ({
       id: f.id,
       name: f.name,
       description: f.description,
@@ -75,7 +75,7 @@ export class OrganizationService extends BaseService {
       where,
       include: { faculty: true },
     });
-    return departments.map((d) => ({
+    return departments.map((d: any) => ({
       id: d.id,
       facultyId: d.facultyId,
       name: d.name,

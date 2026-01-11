@@ -73,7 +73,7 @@ export class ProgramService extends BaseService {
         }),
       ]);
 
-      const data = degrees.map((d) => ({
+      const data = degrees.map((d: any) => ({
         id: d.id,
         departmentId: d.departmentId,
         name: d.name,
@@ -249,7 +249,7 @@ export class ProgramService extends BaseService {
           intakeAcademicYear: "desc",
         },
       });
-      return years.map((y) => y.intakeAcademicYear);
+      return years.map((y: any) => y.intakeAcademicYear);
     } catch (err) {
       throw new RepositoryError(
         "Failed to fetch intake years",

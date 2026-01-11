@@ -18,10 +18,10 @@ interface BookDetails {
   title: string;
   author: string;
   isbn: string;
-  publisher: string;
-  year: number;
-  description: string;
-  coverImage?: string;
+  publisher?: string | null;
+  year?: number | null;
+  description?: string | null;
+  coverUrl?: string | null;
   isAvailable: boolean;
 }
 
@@ -120,9 +120,9 @@ export default function BookDetailView({ book }: BookDetailViewProps) {
                 transition={{ duration: 0.6, type: "spring" as const }}
                 className="w-40 h-60 bg-gradient-to-br from-indigo-500 to-purple-600 rounded shadow-xl flex flex-col items-center justify-center text-white relative transform transition hover:scale-105 duration-300"
               >
-                {book.coverImage ? (
+                {book.coverUrl ? (
                   <img
-                    src={book.coverImage}
+                    src={book.coverUrl}
                     alt={book.title}
                     className="w-full h-full object-cover rounded shadow-xl"
                   />

@@ -203,7 +203,7 @@ export class OfferingService extends BaseService {
         }),
       ]);
 
-      const data = offerings.map((o) => ({
+      const data = offerings.map((o: any) => ({
         id: o.id,
         courseId: o.courseId,
         courseCode: o.course.code,
@@ -238,7 +238,7 @@ export class OfferingService extends BaseService {
         distinct: ["academicYear"],
         orderBy: { academicYear: "desc" },
       });
-      return years.map((y) => y.academicYear);
+      return years.map((y: any) => y.academicYear);
     } catch (err) {
       throw new RepositoryError(
         "Failed to fetch academic years",
@@ -282,7 +282,7 @@ export class OfferingService extends BaseService {
         semester: offering.semester,
         level: offering.level,
         enrolledCount: offering.enrollments.length,
-        enrollments: offering.enrollments.map((e) => ({
+        enrollments: offering.enrollments.map((e: any) => ({
           id: e.id,
           studentId: e.studentProfile.student_id,
           studentName: e.studentProfile.full_name,
@@ -373,7 +373,7 @@ export class OfferingService extends BaseService {
         },
         take: 10,
       });
-      return students.map((s) => ({
+      return students.map((s: any) => ({
         id: s.id,
         studentId: s.student_id,
         name: s.full_name,

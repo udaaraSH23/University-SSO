@@ -24,3 +24,4 @@ if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal = prisma;
 // Explicitly export PrismaClient class and types to avoid "export *" errors with CommonJS
 export { PrismaClient } from "@prisma/client";
 export type * from "@prisma/client";
+export * from "@prisma/client";

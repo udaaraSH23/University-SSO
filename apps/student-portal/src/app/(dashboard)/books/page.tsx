@@ -136,10 +136,10 @@ export default async function BooksPage({
                   className="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all flex gap-4 group"
                 >
                   <div className="h-24 w-16 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center flex-shrink-0 text-gray-400 group-hover:scale-105 transition-transform">
-                    {book.coverImage ? (
+                    {book.coverUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={book.coverImage}
+                        src={book.coverUrl}
                         alt={book.title}
                         className="h-full w-full object-cover rounded"
                       />

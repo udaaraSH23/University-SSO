@@ -72,7 +72,7 @@ export class CourseService extends BaseService {
         }),
       ]);
 
-      const data = courses.map((c) => ({
+      const data = courses.map((c: any) => ({
         id: c.id,
         departmentId: c.departmentId,
         code: c.code,
@@ -108,7 +108,7 @@ export class CourseService extends BaseService {
         include: { department: true },
         take: 10,
       });
-      return courses.map((c) => ({
+      return courses.map((c: any) => ({
         id: c.id,
         departmentId: c.departmentId,
         code: c.code,

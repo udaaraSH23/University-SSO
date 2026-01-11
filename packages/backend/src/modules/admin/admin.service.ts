@@ -196,7 +196,7 @@ export class AdminService extends BaseService implements IAdminService {
         }),
       ]);
 
-      const staffDTOs = staffProfiles.map((staff) => ({
+      const staffDTOs = staffProfiles.map((staff: any) => ({
         id: staff.id,
         fullName: staff.fullName,
         email: staff.user.email,
@@ -326,7 +326,7 @@ export class AdminService extends BaseService implements IAdminService {
 
       // 3. Delete from Local Database
       // Using transaction to ensure clean delete of profile and user
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: any) => {
         await tx.staffProfile.delete({ where: { id } });
         await tx.user.delete({ where: { id: profile.userId } });
       });

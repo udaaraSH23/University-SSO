@@ -28,7 +28,7 @@ jobs:
 
       - name: Type Check & Build
         # Runs build for all workspaces to ensure compilation passes
-        run: npx turbo run build
+        run: npm run build --workspaces --if-present
 
 #      - name: Test
 #        # Runs tests for all workspaces

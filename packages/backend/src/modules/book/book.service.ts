@@ -12,7 +12,7 @@ import { BookRepository } from "./book.repository";
 import { BookDTO } from "../student/student.dto";
 import prisma from "../../lib/db";
 import { CreateBookInput, UpdateBookInput } from "./book.schema";
-import { Book } from "@repo/database";
+import { Book } from "@prisma/client";
 import { DomainError, ERROR_CODES, RepositoryError } from "../../errors";
 
 const bookRepository = new BookRepository();
@@ -96,7 +96,7 @@ export class BookReader extends BaseService implements IBookReader {
         limit
       );
 
-      const data = books.map((book) => ({
+      const data = books.map((book: any) => ({
         id: book.id,
         title: book.title,
         author: book.author,

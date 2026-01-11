@@ -499,7 +499,7 @@ export class StudentRepository {
       }
 
       // Transaction to ensure both profile and user are deleted
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: any) => {
         // Delete enrollments and borrow records (assuming cascade isn't set or to be safe)
         // Note: Check if schema supports cascade. If not, delete manually.
         await tx.enrollment.deleteMany({ where: { studentProfileId: id } });

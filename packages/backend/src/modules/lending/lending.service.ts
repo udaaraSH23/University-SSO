@@ -7,7 +7,7 @@
 import prisma from "../../lib/db";
 
 const __FP_SIG = "FP-20260105-AG-SERVICE-LENDING-V2|HASH-PLACEHOLDER";
-import { BorrowRecord, Prisma } from "@repo/database";
+import { BorrowRecord, Prisma } from "@prisma/client";
 import { ILendingService, BookAvailabilityResult } from "./lending.interface";
 import { BaseService } from "../../common/services/base.service";
 import { DomainError, ERROR_CODES, RepositoryError } from "../../errors";
@@ -321,7 +321,7 @@ export class LendingService extends BaseService implements ILendingService {
       });
 
       const results = await Promise.all(
-        books.map(async (book) => {
+        books.map(async (book: any) => {
           let nextReturnDate: Date | null | undefined = null;
           let borrowedBy: string | null | undefined = null;
 
@@ -410,7 +410,7 @@ export class LendingService extends BaseService implements ILendingService {
         take: 20,
       });
 
-      return students.map((s) => ({
+      return students.map((s: any) => ({
         id: s.id,
         studentId: s.student_id,
         fullName: s.full_name,

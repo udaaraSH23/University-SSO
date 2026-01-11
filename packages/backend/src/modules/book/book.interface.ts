@@ -8,7 +8,7 @@ import { BookDTO } from "../student/student.dto";
 
 const __FP_SIG = "FP-20251226-US-INT-BOOK|HASH-PLACEHOLDER";
 import { CreateBookInput, UpdateBookInput } from "./book.schema";
-import { Book } from "@repo/database";
+import { Book } from "@prisma/client";
 
 /**
  * Interface: Book Reader
