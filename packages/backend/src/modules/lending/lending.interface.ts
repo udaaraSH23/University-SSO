@@ -4,7 +4,7 @@
 // FP-HASH: HASH-PLACEHOLDER
 // Generated: 2025-12-26T22:35:00Z
 
-import { BorrowRecord, StudentProfile, Book } from "@prisma/client";
+import { BorrowRecord, StudentProfile, Book } from "@repo/database";
 
 export type EnrichedBorrowRecord = BorrowRecord & {
   studentProfile: StudentProfile;

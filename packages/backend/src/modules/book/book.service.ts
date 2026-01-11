@@ -12,7 +12,7 @@ import { BookRepository } from "./book.repository";
 import { BookDTO } from "../student/student.dto";
 import prisma from "../../lib/db";
 import { CreateBookInput, UpdateBookInput } from "./book.schema";
-import { Book } from "@prisma/client";
+import { Book } from "@repo/database";
 import { DomainError, ERROR_CODES, RepositoryError } from "../../errors";
 
 const bookRepository = new BookRepository();

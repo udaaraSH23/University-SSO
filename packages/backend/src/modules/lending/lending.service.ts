@@ -7,7 +7,7 @@
 import prisma from "../../lib/db";
 
 const __FP_SIG = "FP-20260105-AG-SERVICE-LENDING-V2|HASH-PLACEHOLDER";
-import { BorrowRecord, Prisma } from "@prisma/client";
+import { BorrowRecord, Prisma } from "@repo/database";
 import { ILendingService, BookAvailabilityResult } from "./lending.interface";
 import { BaseService } from "../../common/services/base.service";
 import { DomainError, ERROR_CODES, RepositoryError } from "../../errors";
