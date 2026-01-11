@@ -1,0 +1,59 @@
+- name: Ensure production-ready k3s on Azure VM
+  hosts: all
+  become: true
+  vars:
+    # It's better to leave this empty for 'latest' or specify a version like v1.28.2+k3s1
+    k3s_version: ""
+    # Define your public IP here or ensure it's passed via -e "public_ip=..."
+    server_ip: "{{ public_ip | default(ansible_host) }}"
+
+  tasks:
+    - name: Uninstall any existing k3s
+      stat:
+        path: /usr/local/bin/k3s-uninstall.sh
+      register: uninstall_script
+
+    - name: Run k3s uninstall if script exists
+      command: /usr/local/bin/k3s-uninstall.sh
+      when: uninstall_script.stat.exists
+
+    - name: Update apt packages
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install dependencies
+      apt:
+        name: 
+          - curl
+          - htop
+        state: present
+
+    - name: Install k3s server
+      shell: |
+        curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION={{ k3s_version }} sh -s - \
+          server \
+          --tls-san {{ server_ip }} \
+          --write-kubeconfig-mode 644
+      args:
+        creates: /etc/rancher/k3s/k3s.yaml
+
+    - name: Wait for kubeconfig to be generated
+      wait_for:
+        path: /etc/rancher/k3s/k3s.yaml
+        state: present
+        timeout: 30
+
+    - name: Fetch kubeconfig to local machine
+      fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: "./kubeconfig_azure.yaml"
+        flat: yes
+
+    - name: Replace server IP in kubeconfig with public IP
+      delegate_to: localhost
+      become: false
+      replace:
+        path: "./kubeconfig_azure.yaml"
+        regexp: 'https://127.0.0.1:6443'
+        replace: "https://{{ server_ip }}:6443"

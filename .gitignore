@@ -41,4 +41,17 @@ next-env.d.ts
 /.scannerwork
 /.agent
 
+# Ansible
+/infrastructure/ansible/.vault_pass
+/infrastructure/ansible/ansible.cfg
+/infrastructure/ansible/inventory
+/infrastructure/ansible/secrets.yml
+/infrastructure/ansible/playbooks/kubeconfig_azure.yaml
+/infrastructure/ansible/playbooks/roles/
 
+# Terraform
+/infrastructure/terraform/.terraform/
+/infrastructure/terraform/*.tfstate
+/infrastructure/terraform/*.tfstate.*
+/infrastructure/terraform/*.tfvars
+/infrastructure/terraform/*.tfplan

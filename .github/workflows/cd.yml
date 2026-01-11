@@ -25,6 +25,12 @@ jobs:
           - app: student-portal
             dockerfile: apps/student-portal/Dockerfile
             image: university-portal-student
+          - app: library-portal
+            dockerfile: apps/library-portal/Dockerfile
+            image: university-portal-library
+          - app: admin-portal
+            dockerfile: apps/admin-portal/Dockerfile
+            image: university-portal-admin
 
     steps:
       - name: Checkout repository
@@ -69,6 +75,8 @@ jobs:
             # Pull new images
             docker pull ghcr.io/${{ github.repository_owner }}/university-portal-backend:latest
             docker pull ghcr.io/${{ github.repository_owner }}/university-portal-student:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/university-portal-library:latest
+            docker pull ghcr.io/${{ github.repository_owner }}/university-portal-admin:latest
             
             # Restart containers (Assumes docker-compose or similar setup exists on server)
             # Example:

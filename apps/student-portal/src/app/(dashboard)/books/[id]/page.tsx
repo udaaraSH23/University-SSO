@@ -6,7 +6,6 @@
 
 import { auth } from "@repo/auth";
 import { bookReader } from "@repo/backend";
-import { MoveLeft, BookOpen, LogOut } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import BookDetailView from "../../../../components/dashboard/books/BookDetailView";

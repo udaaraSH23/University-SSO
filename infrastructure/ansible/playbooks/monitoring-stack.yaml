@@ -1,0 +1,102 @@
+---
+- name: Deploy Monitoring Stack (Prometheus + Grafana)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - secrets.yml
+  vars:
+    # Path to the kubeconfig fetched from your Azure VM
+    kubeconfig_local_path: "./kubeconfig_azure.yaml"
+    monitoring_namespace: monitoring
+    
+    # Storage Sizes
+    prometheus_pv_size: 10Gi
+    grafana_pv_size: 5Gi
+    storage_class: local-path
+    
+    # Credentials from variables
+    grafana_admin_user: admin
+    grafana_admin_password: "{{ grafana_admin_password }}"
+
+  tasks:
+    # -------------------------------------------------------
+    # 1. PRE-FLIGHT CHECKS
+    # -------------------------------------------------------
+    - name: Check if kubeconfig exists locally
+      stat:
+        path: "{{ kubeconfig_local_path }}"
+      register: kubeconfig_check
+
+    - name: Fail if kubeconfig is missing
+      fail:
+        msg: >
+          "{{ kubeconfig_local_path }}" not found! 
+          Please run the K3s install playbook first.
+      when: not kubeconfig_check.stat.exists
+
+    # -------------------------------------------------------
+    # 2. KUBERNETES SETUP (Namespace & Secret)
+    # -------------------------------------------------------
+    - name: Ensure monitoring namespace exists
+      shell: |
+        kubectl create namespace {{ monitoring_namespace }} \
+        --kubeconfig {{ kubeconfig_local_path }} \
+        --dry-run=client -o yaml | kubectl apply --kubeconfig {{ kubeconfig_local_path }} -f -
+
+    - name: Create Grafana admin secret (using kubectl to avoid Python issues)
+      shell: |
+        kubectl create secret opaque grafana-admin \
+          --namespace {{ monitoring_namespace }} \
+          --from-literal=admin-user="{{ grafana_admin_user }}" \
+          --from-literal=admin-password="{{ grafana_admin_password }}" \
+          --kubeconfig {{ kubeconfig_local_path }} \
+          --dry-run=client -o yaml | kubectl apply --kubeconfig {{ kubeconfig_local_path }} -f -
+
+    # -------------------------------------------------------
+    # 3. HELM REPO MANAGEMENT
+    # -------------------------------------------------------
+    - name: Add Helm Repos
+      command: helm repo add {{ item.name }} {{ item.url }}
+      loop:
+        - { name: prometheus-community, url: "https://prometheus-community.github.io/helm-charts" }
+        - { name: grafana, url: "https://grafana.github.io/helm-charts" }
+      register: repo_add
+      changed_when: "'has been added' in repo_add.stdout"
+
+    - name: Update Helm repos
+      command: helm repo update
+      changed_when: false
+
+    # -------------------------------------------------------
+    # 4. DEPLOY PROMETHEUS
+    # -------------------------------------------------------
+    - name: Deploy Prometheus
+      command: >
+        helm upgrade --install prometheus prometheus-community/prometheus
+        --namespace {{ monitoring_namespace }}
+        --kubeconfig {{ kubeconfig_local_path }}
+        --set server.persistentVolume.enabled=true
+        --set server.persistentVolume.size={{ prometheus_pv_size }}
+        --set server.persistentVolume.storageClass={{ storage_class }}
+        --set server.persistentVolume.existingClaim=prometheus-server-pvc
+        --wait
+
+    # -------------------------------------------------------
+    # 5. DEPLOY GRAFANA
+    # -------------------------------------------------------
+    - name: Deploy Grafana
+      command: >
+        helm upgrade --install grafana grafana/grafana
+        --namespace {{ monitoring_namespace }}
+        --kubeconfig {{ kubeconfig_local_path }}
+        --set persistence.enabled=true
+        --set persistence.type=pvc
+        --set persistence.size={{ grafana_pv_size }}
+        --set persistence.storageClassName={{ storage_class }}
+        --set persistence.existingClaim=grafana-pvc
+        --set admin.existingSecret=grafana-admin
+        --set admin.userKey=admin-user
+        --set admin.passwordKey=admin-password
+        --set ingress.enabled=false
+        --wait

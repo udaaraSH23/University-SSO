@@ -1,0 +1,21 @@
+prometheus:
+  server:
+    persistentVolume:
+      enabled: true
+      size: "10Gi"
+      storageClass: "local-path"
+
+grafana:
+  persistence:
+    type: pvc
+    enabled: true
+    size: "5Gi"
+    storageClassName: "local-path"
+    accessModes:
+      - ReadWriteOnce
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  ingress:
+    enabled: false
