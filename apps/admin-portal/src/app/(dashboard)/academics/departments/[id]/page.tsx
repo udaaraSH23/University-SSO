@@ -7,7 +7,7 @@ import {
   DepartmentForm,
   DepartmentFormData,
 } from "@/components/forms/DepartmentForm";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { Plus, Edit } from "lucide-react";
 
 import {
@@ -38,26 +38,29 @@ export default function DepartmentDetailPage({
     (DegreeFormData & { id?: number }) | undefined
   >(undefined);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
-    const departmentId = Number.parseInt(resolvedParams.id);
-    const [deptRes, degreeRes] = await Promise.all([
+    const departmentId = parseInt(resolvedParams.id);
+    const [departmentRes, degreesRes] = await Promise.all([
       getDepartmentByIdAction(departmentId),
-      getDegreeProgramsAction(departmentId),
+      getDegreeProgramsAction(departmentId), // Assuming getDegreesByDepartmentAction is a typo and should be getDegreeProgramsAction
     ]);
 
-    if (deptRes.success) {
-      setDepartment(deptRes.data);
+    if (departmentRes.success) {
+      setDepartment(departmentRes.data);
     }
-    if (degreeRes.success) {
-      setDegrees(degreeRes.data as DegreeProgram[]);
+    if (degreesRes.success) {
+      setDegrees(degreesRes.data as DegreeProgram[]); // Assuming Degree is a typo and should be DegreeProgram
     }
     setLoading(false);
-  };
+  }, [resolvedParams.id]);
 
   useEffect(() => {
-    fetchData();
-  }, [resolvedParams.id]);
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchData]);
 
   const handleAddDegree = () => {
     setEditingDegree(undefined);

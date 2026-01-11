@@ -1,11 +1,11 @@
 "use client";
 
 import { Pagination } from "@repo/ui";
-import { BorrowRecord } from "@repo/database";
+import { BorrowRecordWithBook } from "@repo/backend";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface StudentHistoryTableProps {
-  history: BorrowRecord[];
+  history: BorrowRecordWithBook[];
   total: number;
   currentPage: number;
   limit: number;
@@ -94,7 +94,7 @@ export default function StudentHistoryTable({
                       }}
                     >
                       <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                        {(record as any).book?.title || "Unknown Book"}
+                        {record.book?.title || "Unknown Book"}
                       </td>
                       <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                         {new Date(record.borrow_date).toLocaleDateString()}

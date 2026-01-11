@@ -15,7 +15,7 @@
  *     <BookList />
  */
 
-import { Book, Bookmark, BookOpen, Library, ArrowRight } from "lucide-react";
+import { Book, BookOpen, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 

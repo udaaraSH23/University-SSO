@@ -5,14 +5,17 @@
 // Generated: 2025-12-25T14:40:00Z
 
 import { DashboardHeader } from "@repo/ui";
-import { lendingService } from "@repo/backend";
+import {
+  lendingService,
+  StudentLibraryProfile,
+  BorrowRecordWithBook,
+} from "@repo/backend";
 import { api } from "../../../lib/api";
 import StudentStats from "../../../components/students/StudentStats";
 import StudentSearch from "../../../components/students/StudentSearch";
 import StudentDetails from "../../../components/students/StudentDetails";
 import StudentHistoryTable from "../../../components/students/StudentHistoryTable";
 import { toggleStudentRegistrationAction } from "../../actions";
-import { BorrowRecord } from "@repo/database";
 
 export const __FP_SIG = "FP-20251225-AG-LIB-STUDENTS|HASH-PLACEHOLDER";
 export const dynamic = "force-dynamic";
@@ -34,40 +37,46 @@ export default async function StudentsPage({
   const page = Number(resolvedSearchParams.page) || 1;
   const LIMIT = 5; // Minimum 5 as requested
 
-  /* eslint-disable prefer-const */
-  let stats: any = {};
-  let matchingStudents: any[] = [];
-  let selectedStudent: any = null;
-  let history: { history: BorrowRecord[]; total: number } = {
+  let stats: { totalStudents: number; registeredStudents: number } = {
+    totalStudents: 0,
+    registeredStudents: 0,
+  };
+  let matchingStudents: StudentLibraryProfile[] = [];
+  let selectedStudent: StudentLibraryProfile | null = null;
+  let history: { history: BorrowRecordWithBook[]; total: number } = {
     history: [],
     total: 0,
   };
-  /* eslint-enable prefer-const */
 
   try {
     // Parallel fetch for stats and potentially search if query exists
-    const promiseMap: any = {
-      stats: api.execute(() => lendingService.getStudentLibraryStats()),
-    };
+    const statsPromise = api.execute(() =>
+      lendingService.getStudentLibraryStats()
+    );
+    let searchPromise: Promise<StudentLibraryProfile[]> | null = null;
 
     if (query) {
-      promiseMap.search = api.execute(() =>
+      searchPromise = api.execute(() =>
         lendingService.searchStudentsForLibrary(query)
       );
     }
 
-    const results = await Promise.all(Object.values(promiseMap));
-    stats = results[0];
+    const [statsResult, searchResult] = await Promise.all([
+      statsPromise,
+      searchPromise || Promise.resolve([]),
+    ]);
 
-    if (query && results[1]) {
-      matchingStudents = results[1] as any[];
-      if (matchingStudents.length > 0) {
+    stats = statsResult;
+    matchingStudents = searchResult;
+    if (query && searchResult) {
+      matchingStudents = searchResult;
+      if (matchingStudents.length > 0 && matchingStudents[0]) {
         selectedStudent = matchingStudents[0];
         // Fetch history for selected student securely
         try {
           history = await api.execute(() =>
             lendingService.getStudentBorrowHistory(
-              selectedStudent.studentId,
+              selectedStudent!.studentId,
               page,
               LIMIT
             )
@@ -102,7 +111,7 @@ export default async function StudentsPage({
         <>
           {!selectedStudent ? (
             <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 rounded-lg">
-              No students found matching "{query}"
+              No students found matching &quot;{query}&quot;
             </div>
           ) : (
             <>

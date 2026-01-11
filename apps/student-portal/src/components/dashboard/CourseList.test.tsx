@@ -1,19 +1,31 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import CourseList from "./CourseList";
 
 // Mock framer-motion
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, className }: any) => (
-      <div className={className}>{children}</div>
-    ),
+    div: ({
+      children,
+      className,
+    }: {
+      children: React.ReactNode;
+      className?: string;
+    }) => <div className={className}>{children}</div>,
   },
 }));
 
 // Mock Pagination component
 vi.mock("@repo/ui", () => ({
-  Pagination: ({ currentPage, totalPages, onPageChange }: any) => (
+  Pagination: ({
+    currentPage,
+    totalPages,
+    onPageChange,
+  }: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }) => (
     <div data-testid="pagination">
       <span>
         Page {currentPage} of {totalPages}

@@ -5,7 +5,7 @@ import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
 import { FilterWrapper } from "@/components/shared/FilterWrapper";
 import { CoursesTable, Course } from "@/components/courses/CoursesTable";
 import { Plus, Search, Filter as FilterIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -15,10 +15,12 @@ import {
   deleteCourseAction,
 } from "@/actions/academics.actions";
 
+import { DegreeProgramDTO, FacultyDTO } from "@repo/backend";
+
 interface CoursesClientProps {
-  initialCourses: any; // Using any to match action return type structure
-  faculties: any[];
-  degrees: any[];
+  initialCourses: { data: Course[]; total: number };
+  faculties: FacultyDTO[];
+  degrees: DegreeProgramDTO[];
 }
 
 export function CoursesClient({
@@ -50,7 +52,7 @@ export function CoursesClient({
   // We will map Degree -> DepartmentId for the query
   const { confirmDelete } = useDeleteConfirmation();
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     setLoading(true);
     // Logic: If degree selected, use its departmentId.
     // If faculty selected, use facultyId.
@@ -76,12 +78,15 @@ export function CoursesClient({
       console.error("Failed to fetch courses");
     }
     setLoading(false);
-  };
+  }, [degreeFilter, degrees, currentPage, searchTerm, facultyFilter]);
 
   useEffect(() => {
     // Initial fetch handled by Server Component, but update on page change
-    fetchCourses();
-  }, [currentPage]);
+    const timer = setTimeout(() => {
+      fetchCourses();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [currentPage, fetchCourses]);
 
   // Note: similar to other pages, filtering is triggered by the "Search" / "Filter" buttons manually calling fetchCourses()
   // except for currentPage which triggers it automatically here.
@@ -89,9 +94,12 @@ export function CoursesClient({
   useEffect(() => {
     const action = searchParams.get("action");
     if (action === "add") {
-      setEditingCourse(undefined);
-      setEditingCourseId(null);
-      setIsSlideOverOpen(true);
+      const timer = setTimeout(() => {
+        setEditingCourse(undefined);
+        setEditingCourseId(null);
+        setIsSlideOverOpen(true);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 

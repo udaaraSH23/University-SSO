@@ -4,7 +4,15 @@
 // FP-HASH: HASH-PLACEHOLDER
 // Generated: 2025-12-26T22:35:00Z
 
-import { BorrowRecord } from "@repo/database";
+import { BorrowRecord, StudentProfile, Book } from "@repo/database";
+
+export type EnrichedBorrowRecord = BorrowRecord & {
+  studentProfile: StudentProfile;
+};
+
+export type BorrowRecordWithBook = BorrowRecord & {
+  book: Book;
+};
 
 const __FP_SIG = "FP-20251226-US-INT-LENDING|HASH-PLACEHOLDER";
 
@@ -29,11 +37,11 @@ export interface ILendingService {
     studentId: string,
     page: number,
     limit: number
-  ): Promise<{ history: BorrowRecord[]; total: number }>;
+  ): Promise<{ history: BorrowRecordWithBook[]; total: number }>;
   toggleStudentRegistration(studentId: string): Promise<boolean>;
   getBookBorrowHistory(bookId: number): Promise<{
-    active: BorrowRecord[];
-    history: BorrowRecord[];
+    active: EnrichedBorrowRecord[];
+    history: EnrichedBorrowRecord[];
   }>;
 }
 
@@ -49,7 +57,7 @@ export interface StudentLibraryProfile {
   degreeProgram: string;
   currentAcademicYear: string;
   isRegistered: boolean;
-  currentLoans: BorrowRecord[];
+  currentLoans: BorrowRecordWithBook[];
 }
 
 export interface LibraryDashboardStats {

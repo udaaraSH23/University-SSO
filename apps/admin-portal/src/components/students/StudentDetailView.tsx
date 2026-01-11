@@ -20,7 +20,6 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Filter as FilterIcon,
   Star,
 } from "lucide-react";
 import Link from "next/link";
@@ -42,6 +41,7 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { StudentForm } from "@/components/forms/StudentForm";
+import { StudentCreateDTO } from "@repo/backend";
 
 /**
  * StudentDetailView
@@ -133,18 +133,14 @@ export function StudentDetailView({ data }: StudentDetailViewProps) {
     });
   };
 
-  const handleStudentUpdate = async (data: any) => {
+  const handleStudentUpdate = async (data: StudentCreateDTO) => {
     // Adapter to match what updateStudentAction expects vs what StudentForm gives
-    // StudentForm gives: username, email, fullName, studentId, degreeProgramId, currentAcademicYear, level
-    // StudentForm gives: username, email, fullName, studentId, degreeProgramId, currentAcademicYear, level
-    // updateStudentAction expects StudentUpdateDTO
-    // updateStudentAction expects StudentUpdateDTO
-    // Removing fields not typically updatable or present in DTO based on lint errors.
+    // StudentForm gives StudentCreateDTO
     const result = await updateStudentAction(profile.id, {
       fullName: data.fullName,
-      degreeProgramId: Number(data.degreeProgramId),
+      degreeProgramId: data.degreeProgramId,
       currentAcademicYear: data.currentAcademicYear,
-      level: Number(data.level),
+      level: data.level,
     });
 
     if (result.success) {
@@ -364,8 +360,8 @@ export function StudentDetailView({ data }: StudentDetailViewProps) {
                             <button
                               onClick={() => {
                                 setEditingEnrollment({
-                                  enrollmentId: (enr as any).id, // Type assertion until DTO updated
-                                  offeringId: (enr as any).offeringId, // Type assertion until DTO updated
+                                  enrollmentId: enr.enrollmentId,
+                                  offeringId: enr.offeringId,
                                   grade: enr.grade || "",
                                 });
                                 setIsEnrollFormOpen(true);
@@ -375,7 +371,7 @@ export function StudentDetailView({ data }: StudentDetailViewProps) {
                               <Pencil className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleDelete((enr as any).id)}
+                              onClick={() => handleDelete(enr.enrollmentId)}
                               className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />

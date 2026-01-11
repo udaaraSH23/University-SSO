@@ -1,17 +1,11 @@
 "use client";
 
-import {
-  MoveLeft,
-  BookOpen,
-  LogOut,
-  Clock,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { MoveLeft, BookOpen, Clock, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Home } from "lucide-react";
-import { BorrowRecord, StudentProfile, User } from "@repo/database";
+import { BorrowRecord, StudentProfile } from "@repo/database";
+import Image from "next/image";
 
 interface BookDetails {
   id: number;
@@ -29,7 +23,7 @@ interface BookDetails {
 }
 
 interface BookDetailViewProps {
-  book: any; // Using any temporarily to avoid strict type checks on complex join types, but structure is above
+  book: BookDetails;
 }
 
 const containerVariants = {
@@ -115,10 +109,11 @@ export default function BookDetailView({ book }: BookDetailViewProps) {
                 className="w-48 h-72 bg-gradient-to-br from-indigo-500 to-purple-600 rounded shadow-xl flex flex-col items-center justify-center text-white relative transform transition hover:scale-105 duration-300"
               >
                 {book.coverUrl ? (
-                  <img
+                  <Image
                     src={book.coverUrl}
                     alt={book.title}
-                    className="w-full h-full object-cover rounded shadow-xl"
+                    fill
+                    className="object-cover rounded shadow-xl"
                   />
                 ) : (
                   <>
@@ -236,7 +231,7 @@ export default function BookDetailView({ book }: BookDetailViewProps) {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                      {book.active.map((record: any) => (
+                      {book.active.map((record) => (
                         <tr
                           key={record.id}
                           className="hover:bg-slate-50 dark:hover:bg-slate-700/30"
@@ -282,7 +277,7 @@ export default function BookDetailView({ book }: BookDetailViewProps) {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                      {book.history.map((record: any) => (
+                      {book.history.map((record) => (
                         <tr
                           key={record.id}
                           className="hover:bg-slate-50 dark:hover:bg-slate-700/30"

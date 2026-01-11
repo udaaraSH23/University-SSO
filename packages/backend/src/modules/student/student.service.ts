@@ -103,6 +103,7 @@ export class StudentService extends BaseService implements IStudentService {
 
       const result = enrollments.map((enrollment: any) => ({
         enrollmentId: enrollment.id,
+        offeringId: enrollment.courseOfferingId,
         courseId: enrollment.courseOffering.course.id,
         code: enrollment.courseOffering.course.code,
         name: enrollment.courseOffering.course.name,

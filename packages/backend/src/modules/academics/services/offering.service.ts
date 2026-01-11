@@ -9,6 +9,7 @@ const __FP_SIG = "FP-20260105-US-SERVICE-OFFERING-V2|HASH-PLACEHOLDER";
 import prisma from "../../../lib/db";
 import { BaseService } from "../../../common/services/base.service";
 import { CourseOfferingDTO } from "../academics.dto";
+import { SearchStudentResult } from "../../student/student.dto";
 import { DomainError, ERROR_CODES, RepositoryError } from "../../../errors";
 
 /**
@@ -360,7 +361,7 @@ export class OfferingService extends BaseService {
     }
   }
 
-  async searchStudents(query: string): Promise<any[]> {
+  async searchStudents(query: string): Promise<SearchStudentResult[]> {
     this.logger.debug({ query }, "Searching students");
     try {
       const students = await prisma.studentProfile.findMany({

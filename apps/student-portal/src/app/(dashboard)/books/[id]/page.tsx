@@ -39,8 +39,9 @@ export default async function BookDetailsPage({
 
   try {
     book = await api.execute(() => bookReader.getBookDetails(id));
-  } catch (err: any) {
-    if (err?.code === "BOOK_NOT_FOUND") {
+  } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((err as any)?.code === "BOOK_NOT_FOUND") {
       // Handled below by checking if book is undefined/null
     } else {
       error = "Failed to load book details.";

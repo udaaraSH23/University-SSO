@@ -30,10 +30,10 @@ export default async function BooksPage({
   const query = resolvedSearchParams.query || "";
   const limit = 10;
 
-  /* eslint-disable prefer-const */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let stats: any = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let booksResult: any = { data: [], meta: { totalPages: 1, page: 1 } };
-  /* eslint-enable prefer-const */
 
   try {
     const [fetchedStats, fetchedBooks] = await api.execute(() =>

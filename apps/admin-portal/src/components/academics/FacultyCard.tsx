@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, BookOpen, GraduationCap } from "lucide-react";
+import { BookOpen, GraduationCap } from "lucide-react";
 import Link from "next/link";
 
 export interface FacultyCardProps {

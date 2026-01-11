@@ -13,8 +13,10 @@ import {
   deleteFacultyAction,
 } from "@/actions/academics.actions";
 
+import { FacultyDTO } from "@repo/backend";
+
 interface FacultiesClientProps {
-  initialFaculties: any[];
+  initialFaculties: FacultyDTO[];
 }
 
 export function FacultiesClient({ initialFaculties }: FacultiesClientProps) {
@@ -34,9 +36,12 @@ export function FacultiesClient({ initialFaculties }: FacultiesClientProps) {
 
   useEffect(() => {
     if (searchParams.get("action") === "add") {
-      setEditingFaculty(undefined);
-      setEditingFacultyId(null);
-      setIsSlideOverOpen(true);
+      const timer = setTimeout(() => {
+        setEditingFaculty(undefined);
+        setEditingFacultyId(null);
+        setIsSlideOverOpen(true);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 
@@ -84,7 +89,7 @@ export function FacultiesClient({ initialFaculties }: FacultiesClientProps) {
     }
   };
 
-  const handleDeleteClick = (faculty: any) => {
+  const handleDeleteClick = (faculty: FacultyDTO) => {
     confirmDelete({
       title: "Delete Faculty",
       description: `Are you sure you want to delete "${faculty.name}"? This action cannot be undone.`,
@@ -124,12 +129,12 @@ export function FacultiesClient({ initialFaculties }: FacultiesClientProps) {
             key={faculty.id}
             id={faculty.id}
             name={faculty.name}
-            description={faculty.description}
+            description={faculty.description ?? undefined}
             departmentCount={faculty.departmentCount || 0}
             onEdit={() => {
               setEditingFaculty({
                 name: faculty.name,
-                description: faculty.description,
+                description: faculty.description ?? undefined,
               });
               setEditingFacultyId(faculty.id);
               setIsSlideOverOpen(true);

@@ -41,6 +41,7 @@ export interface PaginatedStudentsDTO {
 
 export interface CourseDTO {
   enrollmentId: number; // Unique ID for the student's enrollment
+  offeringId: number;
   courseId: number;
   code: string;
   name: string;
@@ -88,7 +89,9 @@ export interface BookDTO {
   publisher: string;
   year: number;
   description: string;
-  coverImage?: string;
+  coverImage: string;
+  available_copies: number;
+  total_copies: number;
   isAvailable: boolean;
 }
 
@@ -119,4 +122,11 @@ export interface StudentUpdateDTO {
   degreeProgramId?: number;
   currentAcademicYear?: string;
   level?: number;
+}
+
+export interface SearchStudentResult {
+  id: number;
+  studentId: string;
+  name: string;
+  degreeProgramId: number;
 }

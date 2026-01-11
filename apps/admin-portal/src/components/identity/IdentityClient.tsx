@@ -7,7 +7,7 @@ import { UserForm, UserFormData } from "@/components/forms/UserForm";
 import { Plus, Search, Filter as FilterIcon } from "lucide-react";
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 
 // Since we are moving away from api routes for fetching, but maybe for mutations we still use actions or api routes?
 // The original used fetch('/api/admin/users...').
@@ -37,7 +37,6 @@ export function IdentityClient({ initialUsers }: IdentityClientProps) {
     limit: 10,
   });
   const { confirmDelete } = useDeleteConfirmation();
-  const router = useRouter();
 
   // We should still support client-side refreshing/filtering if needed.
   // But if we want to be consistent with Server Components, search/filter should update URL.
@@ -153,13 +152,15 @@ export function IdentityClient({ initialUsers }: IdentityClientProps) {
       );
       handleClose();
       fetchUsers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Submit error:", error);
-      toast.error(error.message || "Failed to save user");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save user"
+      );
     }
   };
 
-  const handleDelete = async (id: string, provider: "local" | "wso2") => {
+  const handleDelete = async (id: string, _provider: "local" | "wso2") => {
     confirmDelete({
       title: "Delete User",
       description:
@@ -177,9 +178,11 @@ export function IdentityClient({ initialUsers }: IdentityClientProps) {
 
           toast.success("User deleted successfully");
           fetchUsers();
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error("Delete error:", error);
-          toast.error(error.message || "Failed to delete user");
+          toast.error(
+            error instanceof Error ? error.message : "Failed to delete user"
+          );
         }
       },
     });

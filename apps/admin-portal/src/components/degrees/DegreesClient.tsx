@@ -5,7 +5,7 @@ import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
 import { FilterWrapper } from "@/components/shared/FilterWrapper";
 import { DegreesTable, DegreeProgram } from "@/components/degrees/DegreesTable";
 import { Plus, Search, Filter as FilterIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -13,19 +13,19 @@ import {
   createDegreeProgramAction,
   updateDegreeProgramAction,
   deleteDegreeProgramAction,
-  getFacultiesAction,
+  // getFacultiesAction, // Unused
 } from "@/actions/academics.actions";
+import { DepartmentDTO, FacultyDTO } from "@repo/backend";
 
 interface DegreesClientProps {
-  initialDegrees: any; // Using any for now to match action return type structure which might be {data: [], total: 0} or similar
-  departments: any[];
-  faculties: any[];
+  initialDegrees: { data: DegreeProgram[]; total: number };
+  departments: DepartmentDTO[];
+  faculties: FacultyDTO[];
   intakeYears: string[];
 }
 
 export function DegreesClient({
   initialDegrees,
-  departments,
   faculties,
   intakeYears,
 }: DegreesClientProps) {
@@ -46,9 +46,7 @@ export function DegreesClient({
   const [editingDegreeId, setEditingDegreeId] = useState<number | null>(null);
 
   // Filters state
-  const [departmentFilter, setDepartmentFilter] = useState<number | undefined>(
-    undefined
-  );
+  const [departmentFilter] = useState<number | undefined>(undefined);
   const [facultyFilter, setFacultyFilter] = useState<number | undefined>(
     undefined
   );
@@ -57,7 +55,7 @@ export function DegreesClient({
 
   const { confirmDelete } = useDeleteConfirmation();
 
-  const fetchDegrees = async () => {
+  const fetchDegrees = useCallback(async () => {
     setLoading(true);
     // Note: getDegreeProgramsAction is called from client here for updates
     const result = await getDegreeProgramsAction(
@@ -74,29 +72,29 @@ export function DegreesClient({
       console.error("Failed to fetch degree programs");
     }
     setLoading(false);
-  };
+  }, [
+    departmentFilter,
+    currentPage,
+    intakeYearFilter,
+    searchTerm,
+    facultyFilter,
+  ]);
 
   // Effect to handle client-side filter changes or page changes
-  // We only re-fetch if any filter or page changes from initial load state
-  // ideally we should check if initial state matches current state to avoid double fetch
   useEffect(() => {
-    // Skip first run if initial data is present and matches?
-    // Simplified: Just fetch when dependencies change.
-    // However, on mount, we already have initial data.
-    // Let's add a mounted check or just let it be.
-    // For now, this effect runs on updates.
-  }, []);
-
-  useEffect(() => {
-    fetchDegrees();
+    const timer = setTimeout(() => {
+      fetchDegrees();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [
     currentPage,
     departmentFilter,
     facultyFilter,
     intakeYearFilter,
     searchTerm,
+    fetchDegrees,
   ]);
-  // Added searchTerm to dependency to trigger refetch on search, previous code had manual button.
+  // Added fetchDegrees to dependency to trigger refetch on search, previous code had manual button.
   // Previous code: useEffect only on [currentPage]. Search/Filter button triggers fetch.
   // I will revert to that behavior to match original UX.
 
@@ -110,17 +108,21 @@ export function DegreesClient({
   // Actually, let's keep the manual trigger for Search/Filter buttons as in original code
   // but currentPage updates should trigger fetch.
   useEffect(() => {
-    // If it's the first render and we have initial data, maybe skip?
-    // But page param might have changed.
-    fetchDegrees();
-  }, [currentPage]);
+    const timer = setTimeout(() => {
+      fetchDegrees();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [currentPage, fetchDegrees]);
 
   useEffect(() => {
     const action = searchParams.get("action");
     if (action === "add") {
-      setEditingDegree(undefined);
-      setEditingDegreeId(null);
-      setIsSlideOverOpen(true);
+      const timer = setTimeout(() => {
+        setEditingDegree(undefined);
+        setEditingDegreeId(null);
+        setIsSlideOverOpen(true);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 

@@ -10,8 +10,6 @@ import { NextResponse } from "next/server";
 const __FP_SIG = "FP-20251220-US-g7h8i9|HASH-PLACEHOLDER";
 const STUDENT_PORTAL_URL =
   process.env.NEXT_PUBLIC_STUDENT_URL || "http://localhost:3000";
-const LIBRARY_PORTAL_URL =
-  process.env.NEXT_PUBLIC_LIBRARY_URL || "http://localhost:3001";
 const ADMIN_PORTAL_URL =
   process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3002";
 

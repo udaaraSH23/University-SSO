@@ -75,6 +75,7 @@ export class DashboardService extends BaseService implements IDashboardService {
 
       const coursesDTO: CourseDTO[] = enrollments.map((e: any) => ({
         enrollmentId: e.id,
+        offeringId: e.courseOfferingId,
         courseId: e.courseOffering.course.id,
         code: e.courseOffering.course.code,
         name: e.courseOffering.course.name,

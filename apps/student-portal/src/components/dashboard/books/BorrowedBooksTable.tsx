@@ -6,7 +6,7 @@
 
 "use client";
 
-const __FP_SIG = "FP-20251223-US-BOOKS-BORROWED|HASH-PLACEHOLDER";
+// const __FP_SIG = "FP-20251223-US-BOOKS-BORROWED|HASH-PLACEHOLDER";
 
 import { CheckCircle } from "lucide-react";
 import { BorrowedBookDTO } from "@repo/backend";
@@ -52,15 +52,16 @@ const rowVariants = {
 };
 
 export default function BorrowedBooksTable({ books }: BorrowedBooksTableProps) {
+  const [selectedMonth, setSelectedMonth] = useState<string>("All");
+  const [currentPage, setCurrentPage] = useState(1);
+
   if (books.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        You haven't borrowed any books yet.
+        You haven&apos;t borrowed any books yet.
       </div>
     );
   }
-
-  const [selectedMonth, setSelectedMonth] = useState<string>("All");
 
   // Extract unique months from borrowed books
   const availableMonths = Array.from(
@@ -87,7 +88,6 @@ export default function BorrowedBooksTable({ books }: BorrowedBooksTableProps) {
           return monthKey === selectedMonth;
         });
 
-  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
 

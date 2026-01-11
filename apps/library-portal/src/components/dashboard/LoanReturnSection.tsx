@@ -56,8 +56,11 @@ export default function LoanReturnSection() {
         setMessage({ type: "success", text: "Book loaned successfully" });
         // Optional: clear ISBN but keep Student ID for multiple loans
         setIsbn("");
-      } catch (e: any) {
-        setMessage({ type: "error", text: e.message || "Failed to loan book" });
+      } catch (e: unknown) {
+        setMessage({
+          type: "error",
+          text: e instanceof Error ? e.message : "Failed to loan book",
+        });
       }
     });
   };
@@ -82,10 +85,10 @@ export default function LoanReturnSection() {
 
         setMessage({ type: "success", text: "Book returned successfully" });
         setIsbn("");
-      } catch (e: any) {
+      } catch (e: unknown) {
         setMessage({
           type: "error",
-          text: e.message || "Failed to return book",
+          text: e instanceof Error ? e.message : "Failed to return book",
         });
       }
     });

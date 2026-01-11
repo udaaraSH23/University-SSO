@@ -1,7 +1,7 @@
 "use client";
 
 import { StudentLibraryProfile } from "@repo/backend";
-import { Users, CheckCircle, Edit, Trash2, BookOpen } from "lucide-react";
+import { Users, CheckCircle, Trash2, BookOpen } from "lucide-react";
 
 interface StudentDetailsProps {
   student: StudentLibraryProfile;
@@ -122,7 +122,7 @@ export default function StudentDetails({
                   {student.currentLoans.map((loan) => (
                     <tr key={loan.id}>
                       <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
-                        {(loan as any).book?.title || "Unknown Book"}
+                        {loan.book?.title || "Unknown Book"}
                       </td>
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
                         {new Date(loan.due_date).toLocaleDateString()}

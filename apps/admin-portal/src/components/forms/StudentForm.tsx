@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { getDegreeProgramsAction } from "@/actions/academics.actions";
-import { StudentCreateDTO, StudentUpdateDTO } from "@repo/backend";
+import { StudentCreateDTO, DegreeProgramDTO } from "@repo/backend";
 import { toast } from "sonner";
 
 interface StudentFormProps {
-  initialData?: any; // Using any for simplicity as it might be a mix of User and Profile
-  onSubmit: (data: any) => Promise<void>;
+  initialData?: Partial<StudentCreateDTO> & { id?: number };
+  onSubmit: (data: StudentCreateDTO) => Promise<void>;
   onCancel: () => void;
   isEdit?: boolean;
 }
@@ -18,7 +18,7 @@ export function StudentForm({
   onCancel,
   isEdit = false,
 }: StudentFormProps) {
-  const [degreePrograms, setDegreePrograms] = useState<any[]>([]);
+  const [degreePrograms, setDegreePrograms] = useState<DegreeProgramDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: initialData?.username || "",
@@ -55,9 +55,11 @@ export function StudentForm({
     e.preventDefault();
     setLoading(true);
     try {
-      await onSubmit(formData);
-    } catch (error: any) {
-      toast.error(error.message || "Something went wrong");
+      await onSubmit(formData as unknown as StudentCreateDTO);
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong"
+      );
     } finally {
       setLoading(false);
     }

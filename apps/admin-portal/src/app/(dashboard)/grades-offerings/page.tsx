@@ -1,6 +1,6 @@
 const __FP_SIG = "FP-20251230-US-PAGE-OFFERINGS|HASH-PLACEHOLDER";
 
-import { offeringService, programService } from "@repo/backend";
+import { offeringService } from "@repo/backend";
 import { api } from "@/lib/api";
 import { GradesOfferingsClient } from "@/components/offerings/GradesOfferingsClient";
 

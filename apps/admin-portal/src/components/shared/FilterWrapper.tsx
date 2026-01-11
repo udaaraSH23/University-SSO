@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Filter, Search, X } from "lucide-react";
+import { Filter } from "lucide-react";
 import { motion } from "framer-motion";
 
 export interface FilterWrapperProps {

@@ -11,7 +11,7 @@ import {
   DepartmentFormData,
 } from "@/components/forms/DepartmentForm";
 import { Plus, Search, Filter as FilterIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -19,12 +19,13 @@ import {
   createDepartmentAction,
   updateDepartmentAction,
   deleteDepartmentAction,
-  getFacultiesAction,
+  // getFacultiesAction, // Unused
 } from "@/actions/academics.actions";
+import { FacultyDTO } from "@repo/backend";
 
 interface DepartmentsClientProps {
   initialDepartments: Department[];
-  faculties: any[];
+  faculties: FacultyDTO[];
 }
 
 export function DepartmentsClient({
@@ -48,7 +49,7 @@ export function DepartmentsClient({
   const { confirmDelete } = useDeleteConfirmation();
   const searchParams = useSearchParams();
 
-  const fetchDepartments = async () => {
+  const fetchDepartments = useCallback(async () => {
     setLoading(true);
     const result = await getDepartmentsAction(facultyFilter);
     if (result.success && result.data) {
@@ -57,21 +58,27 @@ export function DepartmentsClient({
       console.error("Failed to fetch departments");
     }
     setLoading(false);
-  };
+  }, [facultyFilter]);
 
   // Only re-fetch if filters change interactively, otherwise use initial
   useEffect(() => {
     if (facultyFilter !== undefined) {
-      fetchDepartments();
+      const timer = setTimeout(() => {
+        fetchDepartments();
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [facultyFilter]);
+  }, [facultyFilter, fetchDepartments]);
 
   useEffect(() => {
     const action = searchParams.get("action");
     if (action === "add") {
-      setEditingDepartment(undefined);
-      setEditingDepartmentId(null);
-      setIsSlideOverOpen(true);
+      const timer = setTimeout(() => {
+        setEditingDepartment(undefined);
+        setEditingDepartmentId(null);
+        setIsSlideOverOpen(true);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 

@@ -5,7 +5,12 @@
 // Generated: 2025-12-25T10:55:00Z
 
 import { auth } from "@repo/auth";
-import { studentService, bookReader, BookDTO } from "@repo/backend";
+import {
+  studentService,
+  bookReader,
+  BookDTO,
+  BorrowedBookDTO,
+} from "@repo/backend";
 import { api } from "../../../lib/api";
 
 import BooksSearch from "../../../components/dashboard/books/BooksSearch";
@@ -51,19 +56,17 @@ export default async function BooksPage({
     return <div>Error loading profile.</div>;
   }
 
-  /* eslint-disable prefer-const */
-  let borrowedBooks: any[] = [];
-  let pendingBooks: any[] = []; // Mocking pending books
+  let borrowedBooks: BorrowedBookDTO[] = [];
+  let pendingBooks: BorrowedBookDTO[] = []; // Mocking pending books
   let searchResults: BookDTO[] = [];
   let paginationMeta = { page: 1, totalPages: 1 };
-  /* eslint-enable prefer-const */
 
   try {
     if (query) {
       // Search Mode:
       // When a query exists, we switch context to "Library Catalog Search"
       // avoiding personal book fetches to keep the view focused and performant.
-      const { query: queryParam, page: pageParam } = await searchParams;
+      const { page: pageParam } = await searchParams;
       const page = Number(pageParam) || 1;
       const result = await api.execute(() =>
         bookReader.searchBooks(query, page, 10)
@@ -91,13 +94,13 @@ export default async function BooksPage({
 
         // Separating books based on user requirements
         // Pending: Borrowed, Overdue, or not Returned
-        pendingBooks = allBooks.filter((b: any) => {
+        pendingBooks = allBooks.filter((b) => {
           const s = b.status?.toLowerCase();
           return s === "borrowed" || s === "overdue";
         });
 
         // My Borrowed Books: History of returned books
-        borrowedBooks = allBooks.filter((b: any) => {
+        borrowedBooks = allBooks.filter((b) => {
           const s = b.status?.toLowerCase();
           return s === "returned";
         });
@@ -122,7 +125,7 @@ export default async function BooksPage({
         <section>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center">
             <span className="w-1.5 h-6 bg-primary rounded-full mr-3"></span>
-            Search Results for "{query}"
+            Search Results for &quot;{query}&quot;
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {searchResults.length > 0 ? (
@@ -134,6 +137,7 @@ export default async function BooksPage({
                 >
                   <div className="h-24 w-16 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center flex-shrink-0 text-gray-400 group-hover:scale-105 transition-transform">
                     {book.coverImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={book.coverImage}
                         alt={book.title}

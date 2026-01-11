@@ -1,4 +1,4 @@
-import { bookReader } from "@repo/backend";
+import { bookReader, lendingService } from "@repo/backend";
 import { notFound } from "next/navigation";
 import { api } from "../../../../lib/api";
 import BookDetailView from "../../../../components/books/BookDetailView";
@@ -12,16 +12,23 @@ export default async function BookPage({
   const id = parseInt(idString);
   if (isNaN(id)) return notFound();
 
-  let book;
+  let bookDetails;
   try {
-    book = await api.execute(() => bookReader.getBookDetails(idString));
+    const book = await api.execute(() => bookReader.getBookDetails(idString));
+    if (!book) return notFound();
+
+    const borrowData = await api.execute(() =>
+      lendingService.getBookBorrowHistory(id)
+    );
+    bookDetails = {
+      ...book,
+      coverUrl: book.coverImage,
+      ...borrowData,
+    };
   } catch (error) {
     console.error("Failed to load book:", error);
-  }
-
-  if (!book) {
     return notFound();
   }
 
-  return <BookDetailView book={book} />;
+  return <BookDetailView book={bookDetails} />;
 }

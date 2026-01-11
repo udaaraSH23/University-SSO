@@ -10,6 +10,7 @@ import { CheckCircle, Search, Calendar } from "lucide-react";
 import { useState } from "react";
 import { searchBooksAction } from "../../app/actions";
 import { motion, AnimatePresence } from "framer-motion";
+import { BookAvailabilityResult } from "@repo/backend";
 
 export const __FP_SIG = "FP-20251225-AG-LIB-BOOKS|HASH-PLACEHOLDER";
 
@@ -20,7 +21,7 @@ export const __FP_SIG = "FP-20251225-AG-LIB-BOOKS|HASH-PLACEHOLDER";
  */
 export default function BookAvailability() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]); // TODO: Define strict type for Book Search Result
+  const [results, setResults] = useState<BookAvailabilityResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 

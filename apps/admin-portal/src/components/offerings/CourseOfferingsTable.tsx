@@ -1,13 +1,12 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { Edit2, Eye, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CourseOfferingDTO } from "@repo/backend";
 
 // Extended interface for UI display
-export interface CourseOffering extends CourseOfferingDTO {}
+export type CourseOffering = CourseOfferingDTO;
 
 interface CourseOfferingsTableProps {
   offerings: CourseOffering[];
@@ -20,8 +19,6 @@ export function CourseOfferingsTable({
   onEdit,
   onDelete,
 }: CourseOfferingsTableProps) {
-  const router = useRouter();
-
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="overflow-x-auto">

@@ -432,7 +432,10 @@ export class LendingService extends BaseService implements ILendingService {
     studentId: string,
     page: number,
     limit: number
-  ): Promise<{ history: BorrowRecord[]; total: number }> {
+  ): Promise<{
+    history: import("./lending.interface").BorrowRecordWithBook[];
+    total: number;
+  }> {
     this.logger.debug(
       { studentId, page, limit },
       "getStudentBorrowHistory called"
@@ -509,8 +512,8 @@ export class LendingService extends BaseService implements ILendingService {
   }
 
   async getBookBorrowHistory(bookId: number): Promise<{
-    active: BorrowRecord[];
-    history: BorrowRecord[];
+    active: import("./lending.interface").EnrichedBorrowRecord[];
+    history: import("./lending.interface").EnrichedBorrowRecord[];
   }> {
     this.logger.debug({ bookId }, "getBookBorrowHistory called");
     try {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { AcademicCourseDTO } from "@repo/backend";
 import { searchCoursesAction } from "@/actions/offering.actions";
 import { Search } from "lucide-react";
@@ -34,6 +34,7 @@ export function OfferingForm({
   );
 
   const [courseSearch, setCourseSearch] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<AcademicCourseDTO[]>([]);
   const [selectedcourseName, setSelectedCourseName] = useState("");
@@ -51,8 +52,8 @@ export function OfferingForm({
     setIsSearching(false);
   };
 
-  const debouncedSearch = useCallback(
-    debounce((query: string) => searchCourses(query), 300),
+  const debouncedSearch = useMemo(
+    () => debounce((query: string) => searchCourses(query), 300),
     []
   );
 

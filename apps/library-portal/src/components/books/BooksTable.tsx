@@ -2,7 +2,7 @@
 
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useCallback, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Search, Plus, MoreVertical } from "lucide-react";
 import { Pagination } from "@repo/ui";
 import { motion, AnimatePresence } from "framer-motion";

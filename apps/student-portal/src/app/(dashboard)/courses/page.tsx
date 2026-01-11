@@ -59,13 +59,16 @@ export default async function CoursesPage({
         year,
       })
     );
-  } catch (err: any) {
+  } catch (err) {
     console.error("Failed to fetch courses:", err);
     // 4. Handling errors gracefully
-    if (err?.code === "STUDENT_NOT_FOUND") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const errorObj = err as any;
+    if (errorObj?.code === "STUDENT_NOT_FOUND") {
       error = "Profile not found. Please contact support.";
     } else {
-      error = err?.message || "Failed to load courses. Please try again later.";
+      error =
+        errorObj?.message || "Failed to load courses. Please try again later.";
     }
   }
 

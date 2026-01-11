@@ -2,13 +2,13 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CreateBookSchema, CreateBookInput } from "@repo/backend";
+import { CreateBookSchema, CreateBookInput, BookDTO } from "@repo/backend";
 import { createBookAction, updateBookAction } from "../../actions/book.actions";
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 
 interface BookFormProps {
-  initialData?: any; // Replace with proper type if available
+  initialData?: BookDTO;
   isEdit?: boolean;
 }
 

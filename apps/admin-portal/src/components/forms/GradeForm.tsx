@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, Check } from "lucide-react";
 import { searchStudentsAction } from "@/actions/offering.actions";
+import { SearchStudentResult } from "@repo/backend";
 
 export interface GradeFormData {
   studentId: string;
@@ -23,9 +24,10 @@ export function GradeForm({ initialData, onSubmit, onCancel }: GradeFormProps) {
     }
   );
 
-  const [studentSearch, setStudentSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [studentSearch, setStudentSearch] = useState(
+    initialData?.studentId || ""
+  );
+  const [searchResults, setSearchResults] = useState<SearchStudentResult[]>([]);
   const [showResults, setShowResults] = useState(false);
 
   // Debounce search
@@ -33,13 +35,11 @@ export function GradeForm({ initialData, onSubmit, onCancel }: GradeFormProps) {
     const timer = setTimeout(async () => {
       if (studentSearch.length > 2 && !initialData) {
         // Only search if not editing (or allow editing but careful)
-        setIsSearching(true);
         const res = await searchStudentsAction(studentSearch);
         if (res.success) {
           setSearchResults(res.data || []);
           setShowResults(true);
         }
-        setIsSearching(false);
       } else {
         setSearchResults([]);
         setShowResults(false);
@@ -49,13 +49,14 @@ export function GradeForm({ initialData, onSubmit, onCancel }: GradeFormProps) {
     return () => clearTimeout(timer);
   }, [studentSearch, initialData]);
 
-  // If initial data has studentId, we might want to display it properly,
-  // but for now let's just assume if it's there, it's set.
+  // Initial data handling is now in useState initialization
+  /*
   useEffect(() => {
     if (initialData?.studentId) {
       setStudentSearch(initialData.studentId);
     }
   }, [initialData]);
+  */
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -67,7 +68,7 @@ export function GradeForm({ initialData, onSubmit, onCancel }: GradeFormProps) {
     }));
   };
 
-  const selectStudent = (student: any) => {
+  const selectStudent = (student: SearchStudentResult) => {
     setFormData((prev) => ({ ...prev, studentId: student.studentId }));
     setStudentSearch(`${student.name} (${student.studentId})`);
     setShowResults(false);

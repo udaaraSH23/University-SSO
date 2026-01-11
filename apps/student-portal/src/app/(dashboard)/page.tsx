@@ -15,7 +15,6 @@ import CourseList from "../../components/dashboard/CourseList";
 import BookList from "../../components/dashboard/BookList";
 import { auth } from "@repo/auth";
 import { dashboardService } from "@repo/backend";
-import { redirect } from "next/navigation";
 import { DashboardHeader } from "@repo/ui";
 import { createLogger } from "@repo/logger";
 
@@ -44,8 +43,9 @@ export default async function DashboardPage() {
   const email = session.user.email;
 
   // Parallel data fetching via the dashboard service to minimize waterfall requests
-  const { profile, courses, grades, books } =
-    await dashboardService.getDashboardData(email);
+  const { profile, courses, books } = await dashboardService.getDashboardData(
+    email
+  );
 
   // Derived Stats Calculations
   const gpa = profile?.gpa || 0.0;

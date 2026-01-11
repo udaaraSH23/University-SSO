@@ -41,9 +41,10 @@ export default async function DashboardLayout({
       name: profile.fullName,
       role: profile.staffType,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to fetch admin profile:", error);
-    apiError = error.message;
+    apiError =
+      error instanceof Error ? error.message : "An unknown error occurred";
   }
 
   return (

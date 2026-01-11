@@ -4,7 +4,7 @@ import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
 import { CoursesTable, Course } from "@/components/courses/CoursesTable";
 import { CourseForm, CourseFormData } from "@/components/forms/CourseForm";
 import { DegreeForm, DegreeFormData } from "@/components/forms/DegreeForm";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { Plus, Edit } from "lucide-react";
 
 import {
@@ -35,26 +35,28 @@ export default function DegreeDetailPage({
     (CourseFormData & { id?: number }) | undefined
   >(undefined);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
-    const degreeId = Number.parseInt(resolvedParams.id);
+    const degreeId = parseInt(resolvedParams.id);
     const degreeRes = await getDegreeProgramByIdAction(degreeId);
 
     if (degreeRes.success && degreeRes.data) {
       setDegree(degreeRes.data);
       // Since no direct link, we fetch courses for the department of this degree
-      // This assumes "Courses" on this page means "Courses available to this degree's department"
       const coursesRes = await getCoursesAction(degreeRes.data.departmentId);
       if (coursesRes.success) {
         setCourses(coursesRes.data as Course[]);
       }
     }
     setLoading(false);
-  };
+  }, [resolvedParams.id]);
 
   useEffect(() => {
-    fetchData();
-  }, [resolvedParams.id]);
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchData]);
 
   const handleAddCourse = () => {
     setEditingCourse(undefined);

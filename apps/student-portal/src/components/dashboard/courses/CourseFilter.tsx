@@ -6,7 +6,7 @@
 
 "use client";
 
-const __FP_SIG = "FP-20251225-US-COURSE-FILTER|HASH-PLACEHOLDER";
+// const __FP_SIG = "FP-20251225-US-COURSE-FILTER|HASH-PLACEHOLDER";
 
 /**
  * CourseFilter
@@ -39,7 +39,9 @@ export default function CourseFilter() {
   );
 
   // Sync state with URL changes (e.g., on Reset or manual navigation)
+  // Sync state with URL changes (e.g., on Reset or manual navigation)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setYear(searchParams.get("year") || "all");
     setSemester(searchParams.get("semester") || "all");
   }, [searchParams]);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getFacultiesAction } from "@/actions/academics.actions";
+import { FacultyDTO } from "@repo/backend";
 
 export interface DepartmentFormData {
   name: string;
@@ -24,6 +25,7 @@ export function DepartmentForm({
     }
   );
 
+  /* Initial data handling is now in useState initialization
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -34,8 +36,9 @@ export function DepartmentForm({
       });
     }
   }, [initialData]);
+  */
 
-  const [faculties, setFaculties] = useState<any[]>([]);
+  const [faculties, setFaculties] = useState<FacultyDTO[]>([]);
 
   useEffect(() => {
     getFacultiesAction().then((res) => {

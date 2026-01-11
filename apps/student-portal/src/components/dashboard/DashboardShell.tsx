@@ -14,7 +14,6 @@ import {
   BookOpen,
   User,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 

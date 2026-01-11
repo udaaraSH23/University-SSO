@@ -6,11 +6,11 @@
 
 "use client";
 
-const __FP_SIG = "FP-20251223-US-BOOKS-PENDING|HASH-PLACEHOLDER";
+// const __FP_SIG = "FP-20251223-US-BOOKS-PENDING|HASH-PLACEHOLDER";
 
 import { BookOpen } from "lucide-react";
 import { BorrowedBookDTO } from "@repo/backend";
-import Link from "next/link";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Pagination } from "@repo/ui";
@@ -53,6 +53,8 @@ const rowVariants = {
 };
 
 export default function PendingBooksTable({ books }: PendingBooksTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+
   if (books.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -60,8 +62,6 @@ export default function PendingBooksTable({ books }: PendingBooksTableProps) {
       </div>
     );
   }
-
-  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const totalPages = Math.ceil(books.length / itemsPerPage);
 

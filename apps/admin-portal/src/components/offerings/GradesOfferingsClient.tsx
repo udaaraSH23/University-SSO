@@ -26,8 +26,18 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
+interface PaginatedOfferings {
+  data: CourseOffering[];
+  metadata: {
+    page: number;
+    totalPages: number;
+    total: number;
+    limit: number;
+  };
+}
+
 interface GradesOfferingsClientProps {
-  initialOfferings: any; // { data: CourseOffering[], metadata: ... }
+  initialOfferings: PaginatedOfferings;
   academicYears: string[];
 }
 
@@ -110,9 +120,13 @@ export function GradesOfferingsClient({
   };
 
   useEffect(() => {
-    if (searchParams.get("action") === "add") {
-      setEditingOffering(undefined);
-      setIsSlideOverOpen(true);
+    const action = searchParams.get("action");
+    if (action === "add") {
+      const timer = setTimeout(() => {
+        setEditingOffering(undefined);
+        setIsSlideOverOpen(true);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 

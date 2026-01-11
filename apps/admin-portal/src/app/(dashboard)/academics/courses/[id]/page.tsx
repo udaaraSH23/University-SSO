@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardHeader, SlideOver, useDeleteConfirmation } from "@repo/ui";
 import { CourseForm, CourseFormData } from "@/components/forms/CourseForm";
@@ -9,7 +9,7 @@ import {
   updateCourseAction,
   deleteCourseAction,
 } from "@/actions/academics.actions";
-import { ArrowLeft, Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 export default function CourseDetailPage({
@@ -24,7 +24,7 @@ export default function CourseDetailPage({
   const [isEditOpen, setIsEditOpen] = useState(false);
   const { confirmDelete } = useDeleteConfirmation();
 
-  const fetchCourse = async () => {
+  const fetchCourse = useCallback(async () => {
     setLoading(true);
     const courseId = Number.parseInt(resolvedParams.id);
     const result = await getCourseByIdAction(courseId);
@@ -35,11 +35,14 @@ export default function CourseDetailPage({
       console.error("Failed to fetch course");
     }
     setLoading(false);
-  };
+  }, [resolvedParams.id]);
 
   useEffect(() => {
-    fetchCourse();
-  }, [resolvedParams.id]);
+    const timer = setTimeout(() => {
+      fetchCourse();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchCourse]);
 
   const handleUpdateCourse = async (data: CourseFormData) => {
     const courseId = Number.parseInt(resolvedParams.id);
@@ -99,23 +102,36 @@ export default function CourseDetailPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Link
-          href="/academics/courses"
-          className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {course.name}
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            {course.code} • {course.credits} Credits • {course.departmentName}
-          </p>
+    <>
+      <DashboardHeader
+        title={course.name}
+        description={`${course.code} • ${course.credits} Credits • ${course.departmentName}`}
+        breadcrumb={[
+          { label: "Academics", href: "/academics" },
+          { label: "Courses", href: "/academics/courses" },
+          {
+            label: course.code,
+            href: `/academics/courses/${resolvedParams.id}`,
+          },
+        ]}
+      >
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsEditOpen(true)}
+            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+            title="Edit Course"
+          >
+            <Edit2 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={handleDelete}
+            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+            title="Delete Course"
+          >
+            <Trash2 className="w-5 h-5" />
+          </button>
         </div>
-      </div>
+      </DashboardHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
@@ -124,22 +140,6 @@ export default function CourseDetailPage({
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 About this Course
               </h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setIsEditOpen(true)}
-                  className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                  title="Edit Course"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                  title="Delete Course"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
             </div>
             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
               {course.description ||
@@ -207,6 +207,6 @@ export default function CourseDetailPage({
           onCancel={() => setIsEditOpen(false)}
         />
       </SlideOver>
-    </div>
+    </>
   );
 }

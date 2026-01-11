@@ -15,13 +15,12 @@ import { StudentsTable } from "./StudentsTable";
 import { StudentFilters } from "./StudentFilters";
 import { StudentForm } from "@/components/forms/StudentForm";
 import {
-  createStudentAction,
   updateStudentAction,
   deleteStudentAction,
 } from "@/actions/student.actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { StudentProfileDTO, FacultyDTO } from "@repo/backend";
+import { StudentProfileDTO, FacultyDTO, StudentCreateDTO } from "@repo/backend";
 
 /**
  * StudentListContainer
@@ -140,7 +139,7 @@ export function StudentListContainer({
    * - Handles both creation and update logic depending on whether `editingStudent` is set.
    * - Uses server actions for updates and an internal API route for creation (WSO2 integration).
    */
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: StudentCreateDTO) => {
     let result;
     if (editingStudent) {
       // Inline Comment: Update existing student profile using Server Action
@@ -189,7 +188,7 @@ export function StudentListContainer({
         } else {
           toast.error(responseData.error || "Failed to create student");
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error("An error occurred while creating the student");
       }
     }
@@ -271,8 +270,9 @@ export function StudentListContainer({
         <div className="space-y-4">
           <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
             <strong>Warning:</strong> This action cannot be undone. It will
-            permanently delete the student's profile, course enrollments, grade
-            history, and their <strong>WSO2 Identity Server account</strong>.
+            permanently delete the student&apos;s profile, course enrollments,
+            grade history, and their{" "}
+            <strong>WSO2 Identity Server account</strong>.
           </div>
           <div className="flex justify-end gap-3">
             <button

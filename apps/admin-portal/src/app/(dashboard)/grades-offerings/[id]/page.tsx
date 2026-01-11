@@ -5,27 +5,21 @@ import {
   StudentGrade,
 } from "@/components/offerings/StudentGradesTable";
 import { GradeForm, GradeFormData } from "@/components/forms/GradeForm";
-import {
-  OfferingForm,
-  OfferingFormData,
-} from "@/components/forms/OfferingForm";
-import { Plus, Users, Calendar, User } from "lucide-react";
-import { useState, use, useEffect } from "react";
+import { Plus, Users, Calendar } from "lucide-react";
+import { useState, use, useEffect, useCallback } from "react";
 import {
   getCourseOfferingByIdAction,
   enrollStudentAction,
   deleteEnrollmentAction,
 } from "@/actions/offering.actions";
-import { useRouter } from "next/navigation";
 
 export default function OfferingDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const router = useRouter();
   const resolvedParams = use(params);
-  const [offering, setOffering] = useState<any>(null);
+  const [offering, setOffering] = useState<any>(null); // TODO: Type this properly from backend DTO if available
   const [loading, setLoading] = useState(true);
 
   const [isGradeSlideOpen, setIsGradeSlideOpen] = useState(false);
@@ -33,11 +27,7 @@ export default function OfferingDetailPage({
     undefined
   );
 
-  useEffect(() => {
-    fetchOffering();
-  }, [resolvedParams.id]);
-
-  const fetchOffering = async () => {
+  const fetchOffering = useCallback(async () => {
     setLoading(true);
     const result = await getCourseOfferingByIdAction(Number(resolvedParams.id));
     if (result.success) {
@@ -46,7 +36,14 @@ export default function OfferingDetailPage({
       alert("Failed to fetch offering details");
     }
     setLoading(false);
-  };
+  }, [resolvedParams.id]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchOffering();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchOffering]);
 
   const handleAddGrade = () => {
     setEditingGrade(undefined);

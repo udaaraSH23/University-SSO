@@ -85,13 +85,13 @@ export default async function GradesPage({
     // Fetch complete grade history first, then filter.
     // In a real app, you might pass filters to the backend to reduce payload size.
     const allGrades = await api.execute(() => studentService.getGrades(email));
-    grades = allGrades.filter((g: any) => {
+    grades = allGrades.filter((g) => {
       let match = true;
       if (yearLevel && g.yearLevelTaken !== yearLevel) match = false;
       if (semester && g.semester !== semester) match = false;
       return match;
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error("Failed to fetch grades:", err);
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -100,7 +100,8 @@ export default async function GradesPage({
             Failed to load grades
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {err?.message || "Please try again later."}
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {(err as any)?.message || "Please try again later."}
           </p>
         </div>
       </div>

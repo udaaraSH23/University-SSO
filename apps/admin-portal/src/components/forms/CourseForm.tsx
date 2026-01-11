@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getDepartmentsAction } from "@/actions/academics.actions";
+import { DepartmentDTO } from "@repo/backend";
 
 export interface CourseFormData {
   name: string;
@@ -32,6 +33,7 @@ export function CourseForm({
     }
   );
 
+  /* Initial data handling is now in useState initialization
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -45,8 +47,9 @@ export function CourseForm({
       });
     }
   }, [initialData]);
+  */
 
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<DepartmentDTO[]>([]);
 
   useEffect(() => {
     getDepartmentsAction().then((res) => {
@@ -126,7 +129,7 @@ export function CourseForm({
           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2"
         >
           <option value="">Select Department</option>
-          {departments.map((d: any) => (
+          {departments.map((d) => (
             <option key={d.id} value={d.id}>
               {d.name}
             </option>

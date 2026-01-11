@@ -17,9 +17,8 @@ import {
   DepartmentForm,
   DepartmentFormData,
 } from "@/components/forms/DepartmentForm";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { Plus, Edit } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
   getFacultyByIdAction,
   getDepartmentsAction,
@@ -52,7 +51,6 @@ export default function FacultyDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const resolvedParams = use(params);
-  const router = useRouter();
   const [faculty, setFaculty] = useState<any>(null);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +65,7 @@ export default function FacultyDetailPage({
   >(undefined);
   const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     const facultyId = parseInt(resolvedParams.id);
     const [facultyRes, departmentsRes] = await Promise.all([
@@ -82,11 +80,14 @@ export default function FacultyDetailPage({
       setDepartments(departmentsRes.data as Department[]);
     }
     setLoading(false);
-  };
+  }, [resolvedParams.id]);
 
   useEffect(() => {
-    fetchData();
-  }, [resolvedParams.id]);
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchData]);
 
   const handleAddDepartment = () => {
     setEditingDepartment(undefined);

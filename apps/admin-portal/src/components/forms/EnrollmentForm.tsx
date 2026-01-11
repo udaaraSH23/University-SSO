@@ -14,6 +14,7 @@ import * as z from "zod";
 import { useState, useTransition, useEffect } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { getCourseOfferingsAction } from "@/actions/offering.actions";
+import { CourseOfferingDTO } from "@repo/backend";
 
 /**
  * EnrollmentForm
@@ -56,7 +57,7 @@ export function EnrollmentForm({
   isEdit = false,
 }: EnrollmentFormProps) {
   const [isPending, startTransition] = useTransition();
-  const [offerings, setOfferings] = useState<any[]>([]);
+  const [offerings, setOfferings] = useState<CourseOfferingDTO[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searching, setSearching] = useState(false);
 

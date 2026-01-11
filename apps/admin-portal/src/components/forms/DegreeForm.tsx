@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getDepartmentsAction } from "@/actions/academics.actions";
+import { DepartmentDTO } from "@repo/backend";
 
 export interface DegreeFormData {
   name: string;
@@ -28,8 +29,9 @@ export function DegreeForm({
     }
   );
 
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<DepartmentDTO[]>([]);
 
+  /* Initial data handling is now in useState initialization
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -41,6 +43,7 @@ export function DegreeForm({
       });
     }
   }, [initialData]);
+  */
 
   useEffect(() => {
     getDepartmentsAction().then((res) => {

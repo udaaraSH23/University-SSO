@@ -8,7 +8,7 @@
 
 const __FP_SIG = "FP-20251225-US-BOOK-DETAIL|HASH-PLACEHOLDER";
 
-import { MoveLeft, BookOpen, LogOut } from "lucide-react";
+import { MoveLeft, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Home } from "lucide-react";

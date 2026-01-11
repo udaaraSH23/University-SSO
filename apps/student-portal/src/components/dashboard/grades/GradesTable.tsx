@@ -6,18 +6,9 @@
 
 "use client";
 
-const __FP_SIG = "FP-20251223-US-J5K6L7|HASH-PLACEHOLDER";
+// const __FP_SIG = "FP-20251223-US-J5K6L7|HASH-PLACEHOLDER";
 
-import {
-  Zap,
-  Monitor,
-  Calculator,
-  History,
-  BookOpen,
-  Code,
-  Database,
-  BrainCircuit,
-} from "lucide-react";
+import { Zap, Monitor, Calculator, History, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Pagination } from "@repo/ui";
@@ -74,6 +65,8 @@ const itemVariants = {
 };
 
 export default function GradesTable({ grades, gpa }: GradesTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+
   if (grades.length === 0) {
     return (
       <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
@@ -116,7 +109,6 @@ export default function GradesTable({ grades, gpa }: GradesTableProps) {
     },
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const totalPages = Math.ceil(grades.length / itemsPerPage);
 
