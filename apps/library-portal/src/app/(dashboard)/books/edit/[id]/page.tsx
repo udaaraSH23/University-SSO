@@ -1,6 +1,6 @@
 import { DashboardHeader } from "@repo/ui";
 import BookForm from "../../../../../components/books/BookForm";
-import { bookManager } from "@repo/backend";
+import { bookManager, BookDTO } from "@repo/backend";
 import { notFound } from "next/navigation";
 import { api } from "../../../../../lib/api";
 
@@ -16,9 +16,20 @@ export default async function EditBookPage({
     notFound();
   }
 
-  let book;
+  let book: BookDTO | null = null;
   try {
-    book = await api.execute(() => bookManager.getBookById(bookId));
+    const rawBook = await api.execute(() => bookManager.getBookById(bookId));
+    if (rawBook) {
+      book = {
+        ...rawBook,
+        description: rawBook.description || undefined,
+        publisher: rawBook.publisher || undefined,
+        coverUrl: rawBook.coverUrl || undefined,
+        genre: rawBook.genre || undefined,
+        language: rawBook.language || "English",
+        isAvailable: rawBook.available_copies > 0,
+      } as BookDTO;
+    }
   } catch (error) {
     console.error("Failed to fetch book for editing:", error);
   }

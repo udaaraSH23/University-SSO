@@ -1,0 +1,7 @@
+// Author: Udara Shanuka
+// Project: University-Portal
+// FP-ID: FP-20251231-AG-INTERFACE-IDENTITY
+// FP-HASH: HASH-PLACEHOLDER
+// Generated: 2025-12-31T12:24:00Z
+const __FP_SIG = "FP-20251231-AG-INTERFACE-IDENTITY|HASH-PLACEHOLDER";
+export {};

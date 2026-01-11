@@ -74,7 +74,7 @@ export interface BorrowedBookDTO {
   returnDate?: Date;
   status: string;
   // Extended fields
-  coverImage?: string;
+  coverUrl?: string; // Standardized from coverImage
   isbn?: string;
   publisher?: string;
   year?: number;
@@ -86,13 +86,15 @@ export interface BookDTO {
   title: string;
   author: string;
   isbn: string;
-  publisher: string;
+  publisher?: string;
   year: number;
-  description: string;
-  coverImage: string;
+  description?: string;
+  coverUrl?: string;
   available_copies: number;
   total_copies: number;
   isAvailable: boolean;
+  language?: string;
+  genre?: string;
 }
 
 export interface DashboardDataDTO {

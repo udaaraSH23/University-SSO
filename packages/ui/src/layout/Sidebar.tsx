@@ -92,7 +92,6 @@ export function Sidebar({
               className="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mb-4 shadow-inner relative overflow-hidden cursor-pointer"
             >
               {user.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={user.image}
                   alt={user.name}

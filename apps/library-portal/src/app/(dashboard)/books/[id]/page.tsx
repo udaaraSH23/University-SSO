@@ -22,7 +22,6 @@ export default async function BookPage({
     );
     bookDetails = {
       ...book,
-      coverUrl: book.coverImage,
       ...borrowData,
     };
   } catch (error) {

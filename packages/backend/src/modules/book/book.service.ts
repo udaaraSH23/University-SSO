@@ -66,8 +66,7 @@ export class BookReader extends BaseService implements IBookReader {
         available_copies: book.available_copies,
         total_copies: book.total_copies,
         isAvailable: book.available_copies > 0,
-        coverImage:
-          "https://images.unsplash.com/photo-1609866138210-84bb60719e37?auto=format&fit=crop&q=80&w=1000",
+        coverUrl: book.coverUrl || undefined,
       };
     } catch (err: unknown) {
       if (err instanceof DomainError) throw err;
@@ -108,8 +107,7 @@ export class BookReader extends BaseService implements IBookReader {
         available_copies: book.available_copies,
         total_copies: book.total_copies,
         isAvailable: book.available_copies > 0,
-        coverImage:
-          "https://images.unsplash.com/photo-1609866138210-84bb60719e37?auto=format&fit=crop&q=80&w=1000",
+        coverUrl: book.coverUrl || undefined,
       }));
 
       return {

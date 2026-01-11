@@ -12,10 +12,10 @@ interface BookDetails {
   title: string;
   author: string;
   isbn: string;
-  publisher: string;
+  publisher?: string | null;
   year: number;
-  description: string | null;
-  coverUrl: string | null;
+  description?: string | null;
+  coverUrl?: string | null;
   available_copies: number;
   total_copies: number;
   active: (BorrowRecord & { studentProfile: StudentProfile })[];

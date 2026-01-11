@@ -1,0 +1,69 @@
+
+
+> admin-portal@0.1.0 build
+> next build
+
+[1G[0K[1m[38;2;173;127;168m▲ Next.js 16.1.0[39m[22m (Turbopack)
+- Environments: .env.local
+
+(node:148101) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[33m[1m⚠[22m[39m The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[37m[1m [22m[39m Creating an optimized production build ...
+Turbopack build encountered 2 warnings:
+[next]/internal/font/google/geist_a71539c9.module.css
+Error while requesting resource
+There was an issue establishing a connection while requesting [32mhttps://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap[39m
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/geist_a71539c9.module.css
+    [next]/internal/font/google/geist_a71539c9.js
+    ./apps/admin-portal/src/app/layout.tsx
+
+
+[next]/internal/font/google/geist_mono_8d43a2aa.module.css
+Error while requesting resource
+There was an issue establishing a connection while requesting [32mhttps://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap[39m
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/geist_mono_8d43a2aa.module.css
+    [next]/internal/font/google/geist_mono_8d43a2aa.js
+    ./apps/admin-portal/src/app/layout.tsx
+
+
+
+> Build error occurred
+Error: Turbopack build failed with 2 errors:
+[next]/internal/font/google/geist_a71539c9.module.css
+[32mnext/font:[39m error:
+Failed to fetch `Geist` from Google Fonts.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/geist_a71539c9.module.css
+    [next]/internal/font/google/geist_a71539c9.js
+    ./apps/admin-portal/src/app/layout.tsx
+
+
+[next]/internal/font/google/geist_mono_8d43a2aa.module.css
+[32mnext/font:[39m error:
+Failed to fetch `Geist Mono` from Google Fonts.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/geist_mono_8d43a2aa.module.css
+    [next]/internal/font/google/geist_mono_8d43a2aa.js
+    ./apps/admin-portal/src/app/layout.tsx
+
+
+    at [3mignore-listed frames[23m
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m Lifecycle script `build` failed with error:
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mcode[39m [33m1[39m
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mpath[39m /home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mworkspace[39m admin-portal@0.1.0
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mlocation[39m /home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m command failed
+[1G[0K⠙[1G[0K[1mnpm[22m [31merror[39m [94mcommand[39m sh -c next build
+[1G[0K⠙[1G[0K

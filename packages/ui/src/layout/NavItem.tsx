@@ -7,11 +7,10 @@
 "use client";
 
 import Link from "next/link";
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
+import { SidebarItem } from "./PortalSidebar";
 
-export interface NavItemProps {
-  /** The URL to navigate to */
-  href: string;
+export interface NavItemProps extends SidebarItem {
   /** The icon to display */
   icon: ReactNode;
   /** The label text */
@@ -20,6 +19,8 @@ export interface NavItemProps {
   active?: boolean;
   /** Optional badge text/number to display */
   badge?: string | number;
+  /** Depth of the current item (for nesting) */
+  depth?: number;
 }
 
 const __FP_SIG = "FP-20251225-AG-SHARED-UI|HASH-PLACEHOLDER";
@@ -34,14 +35,6 @@ const __FP_SIG = "FP-20251225-AG-SHARED-UI|HASH-PLACEHOLDER";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-
-// ... (interface remains same)
-import { SidebarItem } from "./PortalSidebar";
-
-export interface NavItemProps extends SidebarItem {
-  active?: boolean;
-  depth?: number;
-}
 
 export function NavItem({
   href,

@@ -53,6 +53,7 @@ export class BookRepository {
             year: true,
             description: true,
             publisher: true,
+            coverUrl: true,
           },
         }),
         prisma.book.count({ where }),

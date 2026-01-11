@@ -1,0 +1,176 @@
+
+> admin-portal@0.1.0 lint
+> eslint
+
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/eslint.config.mjs
+  1:10  warning  'defineConfig' is defined but never used. Allowed unused vars must match /^(__FP_SIG|_)$/u  @typescript-eslint/no-unused-vars
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/actions/student.actions.ts
+  15:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  45:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  55:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/academics/courses/[id]/page.tsx
+  22:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/academics/courses/page.tsx
+  19:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  21:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  42:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  51:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/academics/degrees/[id]/page.tsx
+  27:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/academics/degrees/page.tsx
+  15:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  43:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/academics/departments/[id]/page.tsx
+  30:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/academics/departments/page.tsx
+  13:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/academics/faculties/[id]/page.tsx
+  54:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/academics/faculties/page.tsx
+  13:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/grades-offerings/[id]/page.tsx
+  22:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  97:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/grades-offerings/page.tsx
+  17:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/identity/page.tsx
+   6:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  21:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  21:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/layout.tsx
+  52:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/page.tsx
+  25:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/(dashboard)/students/page.tsx
+  47:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  48:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  78:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/api/admin/groups/route.ts
+   5:27  warning  'req' is defined but never used           @typescript-eslint/no-unused-vars
+  14:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/api/admin/invites/route.ts
+  20:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/api/admin/users/[id]/route.ts
+   61:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  115:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  188:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/app/api/admin/users/route.ts
+   49:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/components/dashboard/QuickAccessGrid.tsx
+  131:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  195:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/components/forms/EnrollmentForm.tsx
+  72:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/components/identity/IdentityClient.tsx
+  163:43  warning  '_provider' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/admin-portal/src/components/students/StudentListContainer.tsx
+  191:16  warning  '_error' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 52 problems (0 errors, 52 warnings)
+
+
+> library-portal@0.1.0 lint
+> eslint
+
+
+> student-portal@0.1.0 lint
+> eslint
+
+
+/home/ds/Desktop/IS_StudentPOrtal/University-Portal/apps/student-portal/src/components/dashboard/books/BookDetailView.tsx
+  124:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 1 problem (0 errors, 1 warning)
+
+
+> @repo/logger@0.0.0 lint
+> eslint . --max-warnings 0
+
+
+Oops! Something went wrong! :(
+
+ESLint: 9.39.2
+
+ESLint couldn't find an eslint.config.(js|mjs|cjs) file.
+
+From ESLint v9.0.0, the default configuration file is now eslint.config.js.
+If you are using a .eslintrc.* file, please follow the migration guide
+to update your configuration file to the new format:
+
+https://eslint.org/docs/latest/use/configure/migration-guide
+
+If you still have problems after following the migration guide, please stop by
+https://eslint.org/chat/help to chat with the team.
+
+npm error Lifecycle script `lint` failed with error:
+npm error code 2
+npm error path /home/ds/Desktop/IS_StudentPOrtal/University-Portal/packages/logger
+npm error workspace @repo/logger@0.0.0
+npm error location /home/ds/Desktop/IS_StudentPOrtal/University-Portal/packages/logger
+npm error command failed
+npm error command sh -c eslint . --max-warnings 0
+
+
+> @repo/ui@0.0.0 lint
+> eslint .
+
+
+Oops! Something went wrong! :(
+
+ESLint: 9.39.2
+
+ESLint couldn't find an eslint.config.(js|mjs|cjs) file.
+
+From ESLint v9.0.0, the default configuration file is now eslint.config.js.
+If you are using a .eslintrc.* file, please follow the migration guide
+to update your configuration file to the new format:
+
+https://eslint.org/docs/latest/use/configure/migration-guide
+
+If you still have problems after following the migration guide, please stop by
+https://eslint.org/chat/help to chat with the team.
+
+npm error Lifecycle script `lint` failed with error:
+npm error code 2
+npm error path /home/ds/Desktop/IS_StudentPOrtal/University-Portal/packages/ui
+npm error workspace @repo/ui@0.0.0
+npm error location /home/ds/Desktop/IS_StudentPOrtal/University-Portal/packages/ui
+npm error command failed
+npm error command sh -c eslint .

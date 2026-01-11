@@ -1,4 +1,9 @@
 "use strict";
+// Author: System
+// Project: University-Portal
+// FP-ID: FP-20260105-API-IDX
+// FP-HASH: HASH-PLACEHOLDER
+// Generated: 2026-01-05T11:05:00Z
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -14,5 +19,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const __FP_SIG = "FP-20260105-API-IDX|HASH-PLACEHOLDER";
 __exportStar(require("./errors"), exports);
 __exportStar(require("./client"), exports);
