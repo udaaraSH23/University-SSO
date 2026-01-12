@@ -19,7 +19,12 @@ RUN apk update
 COPY .gitignore .gitignore
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/package-lock.json ./package-lock.json
-RUN npm install
+# Increase network timeout and retries
+RUN npm config set fetch-retries 5
+RUN npm config set fetch-retry-factor 2
+RUN npm config set fetch-retry-mintimeout 20000
+RUN npm config set fetch-retry-maxtimeout 120000
+RUN npm install --no-audit --prefer-offline
 
 # 3. Build the app
 FROM base AS builder
