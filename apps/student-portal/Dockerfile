@@ -12,7 +12,7 @@ FROM base AS installer
 WORKDIR /app
 
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 RUN apk update
 
 # First install dependencies (as they change less often)
@@ -24,6 +24,7 @@ RUN npm config set fetch-retries 5
 RUN npm config set fetch-retry-factor 2
 RUN npm config set fetch-retry-mintimeout 20000
 RUN npm config set fetch-retry-maxtimeout 120000
+COPY --from=pruner /app/out/full/packages/database/prisma/schema.prisma /app/packages/database/prisma/schema.prisma
 RUN npm install --no-audit --prefer-offline
 
 # 3. Build the app
