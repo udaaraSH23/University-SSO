@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=university_portal
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  student-portal:
+    container_name: student-portal
+    build:
+      context: .
+      dockerfile: apps/student-portal/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/university_portal?schema=public
+    depends_on:
+      - postgres
+    restart: always
+
+  # library-portal:
+  #   container_name: library-portal
+  #   build:
+  #     context: .
+  #     dockerfile: apps/library-portal/Dockerfile
+  #   ports:
+  #     - "3001:3000"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - DATABASE_URL=postgresql://postgres:password@postgres:5432/university_portal?schema=public
+  #   depends_on:
+  #     - postgres
+  #   restart: always
+
+  # admin-portal:
+  #   container_name: admin-portal
+  #   build:
+  #     context: .
+  #     dockerfile: apps/admin-portal/Dockerfile
+  #   ports:
+  #     - "3002:3000"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - DATABASE_URL=postgresql://postgres:password@postgres:5432/university_portal?schema=public
+  #   depends_on:
+  #     - postgres
+  #   restart: always
+
+volumes:
+  postgres_data:

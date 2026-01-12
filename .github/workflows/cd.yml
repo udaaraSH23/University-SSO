@@ -19,9 +19,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - app: backend
-            dockerfile: packages/backend/Dockerfile
-            image: university-portal-backend
           - app: student-portal
             dockerfile: apps/student-portal/Dockerfile
             image: university-portal-student
@@ -65,22 +62,42 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
-      - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy docker-compose.prod.yml to Server
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/home/ubuntu/app"
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          envs: GITHUB_REPOSITORY_OWNER
           script: |
-            # Pull new images
-            docker pull ghcr.io/${{ github.repository_owner }}/university-portal-backend:latest
-            docker pull ghcr.io/${{ github.repository_owner }}/university-portal-student:latest
-            docker pull ghcr.io/${{ github.repository_owner }}/university-portal-library:latest
-            docker pull ghcr.io/${{ github.repository_owner }}/university-portal-admin:latest
+            cd /home/ubuntu/app
             
-            # Restart containers (Assumes docker-compose or similar setup exists on server)
-            # Example:
-            # cd /app
-            # docker-compose up -d --force-recreate
+            # Export environment variables for envsubst or direct usage (though compose needs .env or direct values)
+            # For this simple setup, we'll replace the placeholder in the file or set env var in shell
+            export GITHUB_REPOSITORY_OWNER=${GITHUB_REPOSITORY_OWNER}
+
+            # Login again just in case (optional if usually logged in)
+            # docker login ghcr.io -u ...
+
+            # Pull and Restart
+            # We rename the prod file to standard name for convenience or use -f
+            mv docker-compose.prod.yml docker-compose.yml
+            
+            docker compose pull
+            docker compose up -d --remove-orphans
             
             echo "Deployment triggered successfully"
