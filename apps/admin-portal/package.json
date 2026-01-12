@@ -9,7 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.3.4",
     "@repo/api-client": "*",
+    "react-hook-form": "^7.51.0",
+    "zod": "^3.22.4",
     "@repo/auth": "*",
     "@repo/backend": "^0.0.0",
     "@repo/tailwind-config": "*",
