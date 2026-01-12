@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@repo/api-client": "*",
     "@repo/auth": "*",
     "@repo/tailwind-config": "*",
     "@repo/ui": "*",

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@repo/auth": "*",
+    "@repo/api-client": "*",
     "@repo/backend": "^0.0.0",
     "@repo/logger": "^0.0.0",
     "@repo/tailwind-config": "*",
