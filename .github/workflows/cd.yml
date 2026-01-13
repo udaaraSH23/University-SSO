@@ -82,15 +82,18 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Normalize owner to lowercase
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+
           # Update image tags in manifests
           # Student Portal
-          yq -i '.spec.template.spec.containers[0].image = "ghcr.io/${{ github.repository_owner }}/university-portal-student:${{ needs.build-and-push.outputs.version }}"' infrastructure/k8s/apps/student-portal/deployment.yaml
+          yq -i ".spec.template.spec.containers[0].image = \"ghcr.io/$OWNER/university-portal-student:${{ needs.build-and-push.outputs.version }}\"" infrastructure/k8s/apps/student-portal/deployment.yaml
           
           # Library Portal
-          yq -i '.spec.template.spec.containers[0].image = "ghcr.io/${{ github.repository_owner }}/university-portal-library:${{ needs.build-and-push.outputs.version }}"' infrastructure/k8s/apps/library-portal/deployment.yaml
+          yq -i ".spec.template.spec.containers[0].image = \"ghcr.io/$OWNER/university-portal-library:${{ needs.build-and-push.outputs.version }}\"" infrastructure/k8s/apps/library-portal/deployment.yaml
           
           # Admin Portal
-          yq -i '.spec.template.spec.containers[0].image = "ghcr.io/${{ github.repository_owner }}/university-portal-admin:${{ needs.build-and-push.outputs.version }}"' infrastructure/k8s/apps/admin-portal/deployment.yaml
+          yq -i ".spec.template.spec.containers[0].image = \"ghcr.io/$OWNER/university-portal-admin:${{ needs.build-and-push.outputs.version }}\"" infrastructure/k8s/apps/admin-portal/deployment.yaml
 
           # Commit and Push if changes exist
           if [[ -n $(git status -s) ]]; then
