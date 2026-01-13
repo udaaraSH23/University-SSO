@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: library-portal
+  namespace: default
+  labels:
+    app: library-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: library-portal
+  template:
+    metadata:
+      labels:
+        app: library-portal
+    spec:
+      containers:
+        - name: library-portal
+          image: ghcr.io/udaarash23/university-portal-library:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: library-portal-secrets
+          env:
+            - name: NODE_ENV
+              value: "production"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: library-portal
+  namespace: default
+spec:
+  selector:
+    app: library-portal
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP

@@ -16,6 +16,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
     strategy:
       matrix:
         include:
@@ -58,46 +60,41 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  deploy:
+  update-manifests:
     runs-on: ubuntu-latest
     needs: build-and-push
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Copy docker-compose.prod.yml to Server
-        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "docker-compose.prod.yml"
-          target: "/home/ubuntu/app"
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        env:
-          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          envs: GITHUB_REPOSITORY_OWNER
-          script: |
-            cd /home/ubuntu/app
-            
-            # Export environment variables for envsubst or direct usage (though compose needs .env or direct values)
-            # For this simple setup, we'll replace the placeholder in the file or set env var in shell
-            export GITHUB_REPOSITORY_OWNER=${GITHUB_REPOSITORY_OWNER}
+      - name: Install yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -O /usr/bin/yq
+          chmod +x /usr/bin/yq
 
-            # Login again just in case (optional if usually logged in)
-            # docker login ghcr.io -u ...
+      - name: Update Manifests
+        run: |
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-            # Pull and Restart
-            # We rename the prod file to standard name for convenience or use -f
-            mv docker-compose.prod.yml docker-compose.yml
-            
-            docker compose pull
-            docker compose up -d --remove-orphans
-            
-            echo "Deployment triggered successfully"
+          # Update image tags in manifests
+          # Student Portal
+          yq -i '.spec.template.spec.containers[0].image = "ghcr.io/${{ github.repository_owner }}/university-portal-student:${{ needs.build-and-push.outputs.version }}"' infrastructure/k8s/apps/student-portal/deployment.yaml
+          
+          # Library Portal
+          yq -i '.spec.template.spec.containers[0].image = "ghcr.io/${{ github.repository_owner }}/university-portal-library:${{ needs.build-and-push.outputs.version }}"' infrastructure/k8s/apps/library-portal/deployment.yaml
+          
+          # Admin Portal
+          yq -i '.spec.template.spec.containers[0].image = "ghcr.io/${{ github.repository_owner }}/university-portal-admin:${{ needs.build-and-push.outputs.version }}"' infrastructure/k8s/apps/admin-portal/deployment.yaml
+
+          # Commit and Push if changes exist
+          if [[ -n $(git status -s) ]]; then
+            git add infrastructure/k8s/apps/
+            git commit -m "chore(cd): update k8s image tags to ${{ needs.build-and-push.outputs.version }}"
+            git push
+          else
+            echo "No changes to commit"
+          fi

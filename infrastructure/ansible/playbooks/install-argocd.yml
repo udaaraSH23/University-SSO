@@ -1,0 +1,109 @@
+---
+- name: Deploy ArgoCD
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - secrets.yml
+  vars:
+    # Path to the kubeconfig fetched from your Azure VM
+    kubeconfig_local_path: "./kubeconfig_azure.yaml"
+    argocd_namespace: argocd
+    argocd_version: "5.46.7" # Pin specific version for stability
+
+  tasks:
+    # -------------------------------------------------------
+    # 1. PRE-FLIGHT CHECKS
+    # -------------------------------------------------------
+    - name: Check if kubeconfig exists locally
+      stat:
+        path: "{{ kubeconfig_local_path }}"
+      register: kubeconfig_check
+
+    - name: Fail if kubeconfig is missing
+      fail:
+        msg: >
+          "{{ kubeconfig_local_path }}" not found!
+          Please run the K3s install playbook first or ensure kubeconfig is present.
+      when: not kubeconfig_check.stat.exists
+
+    # -------------------------------------------------------
+    # 2. KUBERNETES SETUP (Namespace)
+    # -------------------------------------------------------
+    - name: Ensure ArgoCD namespace exists
+      shell: |
+        kubectl create namespace {{ argocd_namespace }} \
+        --kubeconfig {{ kubeconfig_local_path }} \
+        --dry-run=client -o yaml | kubectl apply --kubeconfig {{ kubeconfig_local_path }} -f -
+
+    # -------------------------------------------------------
+    # 3. HELM REPO MANAGEMENT
+    # -------------------------------------------------------
+    - name: Add ArgoCD Helm Repo
+      command: helm repo add argocd https://argoproj.github.io/argo-helm
+      register: repo_add
+      changed_when: "'has been added' in repo_add.stdout"
+
+    - name: Update Helm repos
+      command: helm repo update
+      changed_when: false
+
+    # -------------------------------------------------------
+    # 4. DEPLOY ARGOCD
+    # -------------------------------------------------------
+    - name: Deploy ArgoCD
+      command: >
+        helm upgrade --install argocd argocd/argo-cd
+        --namespace {{ argocd_namespace }}
+        --kubeconfig {{ kubeconfig_local_path }}
+        --version {{ argocd_version }}
+        --set server.service.type=ClusterIP
+        --set server.ingress.enabled=true
+        --set server.ingress.annotations."kubernetes\.io/ingress\.class"=traefik
+        --set server.ingress.hosts[0]=argocd.local
+        --wait
+
+    # -------------------------------------------------------
+    # 5. POST-INSTALL CONFIGURATION
+    # -------------------------------------------------------
+    - name: Get Initial Admin Password
+      shell: |
+        kubectl -n {{ argocd_namespace }} get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+      register: argocd_initial_pass
+      environment:
+        KUBECONFIG: "{{ kubeconfig_local_path }}"
+      ignore_errors: true # Secret might be deleted if password was changed previously
+
+    - name: Print Initial Admin Password
+      debug:
+        msg: "Initial Admin Password: {{ argocd_initial_pass.stdout }}"
+      when: argocd_initial_pass.rc == 0
+
+    - name: Rotate Admin Password (Optional)
+      block:
+        - name: Install python-bcrypt (required for password hashing)
+          pip:
+            name: bcrypt
+            state: present
+
+        - name: Generate bcrypt hash for new password
+          shell: python3 -c 'import bcrypt; print(bcrypt.hashpw(b"{{ argocd_new_password }}", bcrypt.gensalt()).decode("utf-8"))'
+          register: password_hash
+        
+        - name: Patch ArgoCD Secret with New Password
+          shell: |
+            kubectl -n {{ argocd_namespace }} patch secret argocd-secret \
+            -p '{"stringData": { "admin.password": "{{ password_hash.stdout }}", "admin.passwordMtime": "'$(date +%FT%T%Z)'" }}'
+          environment:
+            KUBECONFIG: "{{ kubeconfig_local_path }}"
+
+        - name: Delete Initial Secret (Good Practice)
+          shell: kubectl -n {{ argocd_namespace }} delete secret argocd-initial-admin-secret --ignore-not-found
+          environment:
+            KUBECONFIG: "{{ kubeconfig_local_path }}"
+
+        - name: Print New Password Confirmation
+          debug:
+            msg: "Admin password has been rotated to: {{ argocd_new_password }}"
+      when: argocd_new_password is defined and argocd_new_password | length > 0
+

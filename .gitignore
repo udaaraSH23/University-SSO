@@ -45,7 +45,7 @@ next-env.d.ts
 /infrastructure/ansible/.vault_pass
 /infrastructure/ansible/ansible.cfg
 /infrastructure/ansible/inventory
-/infrastructure/ansible/secrets.yml
+/infrastructure/ansible/playbooks/secrets.yml
 /infrastructure/ansible/playbooks/kubeconfig_azure.yaml
 /infrastructure/ansible/playbooks/roles/
 
