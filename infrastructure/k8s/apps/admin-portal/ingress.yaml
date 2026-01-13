@@ -7,9 +7,10 @@ metadata:
     kubernetes.io/ingress.class: "traefik"
 spec:
   rules:
-    - http:
+    - host: admin.local
+      http:
         paths:
-          - path: /admin
+          - path: /
             pathType: Prefix
             backend:
               service:

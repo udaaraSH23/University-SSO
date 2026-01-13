@@ -7,15 +7,9 @@ metadata:
     kubernetes.io/ingress.class: "traefik" # Assuming k3s uses traefik by default
 spec:
   rules:
-    - http:
+    - host: student.local
+      http:
         paths:
-          - path: /student
-            pathType: Prefix
-            backend:
-              service:
-                name: student-portal
-                port:
-                  number: 80
           - path: /
             pathType: Prefix
             backend:
