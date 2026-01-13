@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: admin-portal
-          image: ghcr.io/udaaraSH23/university-portal-admin:latest
+          image: ghcr.io/udaarash23/university-portal-admin:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -44,4 +44,4 @@ spec:
   template:
     spec:
       containers:
-        - image: ghcr.io/udaaraSH23/university-portal-admin:latest
+        - image: ghcr.io/udaarash23/university-portal-admin:latest
