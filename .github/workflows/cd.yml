@@ -87,13 +87,13 @@ jobs:
 
           # Update image tags in manifests
           # Student Portal
-          yq -i ".spec.template.spec.containers[0].image = \"ghcr.io/$OWNER/university-portal-student:${{ needs.build-and-push.outputs.version }}\"" infrastructure/k8s/apps/student-portal/deployment.yaml
+          yq -i "select(.kind == \"Deployment\") | .spec.template.spec.containers[0].image = \"ghcr.io/$OWNER/university-portal-student:${{ needs.build-and-push.outputs.version }}\"" infrastructure/k8s/apps/student-portal/deployment.yaml
           
           # Library Portal
-          yq -i ".spec.template.spec.containers[0].image = \"ghcr.io/$OWNER/university-portal-library:${{ needs.build-and-push.outputs.version }}\"" infrastructure/k8s/apps/library-portal/deployment.yaml
+          yq -i "select(.kind == \"Deployment\") | .spec.template.spec.containers[0].image = \"ghcr.io/$OWNER/university-portal-library:${{ needs.build-and-push.outputs.version }}\"" infrastructure/k8s/apps/library-portal/deployment.yaml
           
           # Admin Portal
-          yq -i ".spec.template.spec.containers[0].image = \"ghcr.io/$OWNER/university-portal-admin:${{ needs.build-and-push.outputs.version }}\"" infrastructure/k8s/apps/admin-portal/deployment.yaml
+          yq -i "select(.kind == \"Deployment\") | .spec.template.spec.containers[0].image = \"ghcr.io/$OWNER/university-portal-admin:${{ needs.build-and-push.outputs.version }}\"" infrastructure/k8s/apps/admin-portal/deployment.yaml
 
           # Commit and Push if changes exist
           if [[ -n $(git status -s) ]]; then
