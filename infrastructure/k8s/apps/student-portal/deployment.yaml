@@ -41,7 +41,4 @@ spec:
       port: 80
       targetPort: 3000
   type: ClusterIP
-  template:
-    spec:
-      containers:
-        - image: ghcr.io/udaarash23/university-portal-student:latest
+
