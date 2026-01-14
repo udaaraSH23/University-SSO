@@ -60,6 +60,34 @@ resource "azurerm_network_security_rule" "k3s_api" {
   network_security_group_name  = azurerm_network_security_group.nsg.name
 }
 
+resource "azurerm_network_security_rule" "http" {
+  name                        = "Allow-HTTP"
+  priority                    = 1003
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range            = "*"
+  destination_port_range       = "31276"
+  source_address_prefix        = "*"
+  destination_address_prefix   = "*"
+  resource_group_name          = azurerm_resource_group.rg.name
+  network_security_group_name  = azurerm_network_security_group.nsg.name
+}
+
+resource "azurerm_network_security_rule" "https" {
+  name                        = "Allow-HTTPS"
+  priority                    = 1004
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range            = "*"
+  destination_port_range       = "30740"
+  source_address_prefix        = "*"
+  destination_address_prefix   = "*"
+  resource_group_name          = azurerm_resource_group.rg.name
+  network_security_group_name  = azurerm_network_security_group.nsg.name
+}
+
 # Attach NSG to subnet
 resource "azurerm_subnet_network_security_group_association" "subnet_nsg" {
   subnet_id                 = azurerm_subnet.subnet.id
