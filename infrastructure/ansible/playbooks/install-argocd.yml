@@ -3,8 +3,8 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  vars_files:
-    - secrets.yml
+  # vars_files:
+  #   - secrets.yml
   vars:
     # Path to the kubeconfig fetched from your Azure VM
     kubeconfig_local_path: "./kubeconfig_azure.yaml"
@@ -61,6 +61,7 @@
         --set server.ingress.enabled=true
         --set server.ingress.annotations."kubernetes\.io/ingress\.class"=traefik
         --set server.ingress.hosts[0]=argocd.local
+        --set "server.extraArgs={--insecure}"
         --wait
 
     # -------------------------------------------------------

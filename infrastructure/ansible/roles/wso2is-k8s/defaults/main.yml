@@ -1,0 +1,26 @@
+# WSO2 IS K8s Role Defaults
+
+# Helm Configuration
+wso2is_k8s_release_name: "wso2-is"
+wso2is_k8s_namespace: "wso2is"
+# Using the Helm Chart from WSO2
+wso2is_k8s_chart_version: "7.1.0" 
+
+# Image Configuration
+wso2is_image_registry: "udaraweb"
+wso2is_image_repository: "wso2is-mysql"
+wso2is_image_tag: "7.1.0"
+# Digest override if needed (optional, using tag by default as per user request example showing both options, but user gave digest)
+wso2is_image_digest: "sha256:e4c9e4174f88172e5d6f0de5a9c88e9303813861665ad1955b5a7e890ef7ff6a"
+wso2is_use_digest: true
+
+# Database connection (ClusterIP)
+# Service name is likely: {{ release-name }}-mysql
+wso2is_db_host: "mysql-wso2.mysql.svc.cluster.local"
+wso2is_db_port: 3306
+wso2is_db_name: "wso2is"
+wso2is_db_user: "wso2is"
+wso2is_db_password: "wso2is-password" # Should match mysql-k8s role
+
+# Ingress
+wso2is_ingress_host: "is.university.edu"

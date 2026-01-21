@@ -1,0 +1,23 @@
+---
+- name: Deploy IAM Stack to K3s (Local Execution)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    kubeconfig: "./kubeconfig_azure.yaml"
+  roles:
+    - role: ../roles/mysql-k8s
+    # Pass variables needed for DB Init Job
+    - role: ../roles/db-init
+      vars:
+        wso2is_init_namespace: "wso2is"
+        wso2is_db_host: "mysql-wso2.mysql.svc.cluster.local"
+        wso2is_db_port: 3306
+        wso2is_db_name: "wso2is"
+        wso2is_db_user: "wso2is"
+        wso2is_db_password: "wso2is-password"
+        wso2is_image_registry: "udaraweb"
+        wso2is_image_repository: "wso2is-mysql"
+        wso2is_image_tag: "7.1.0"
+
+    - role: ../roles/wso2is-k8s

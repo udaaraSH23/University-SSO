@@ -1,0 +1,52 @@
+---
+- name: Add WSO2 Helm repository
+  kubernetes.core.helm_repository:
+    name: wso2
+    repo_url: "https://helm.wso2.com"
+
+- name: Create WSO2 IS namespace
+  kubernetes.core.k8s:
+    name: "{{ wso2is_k8s_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Deploy WSO2 IS Helm chart
+  kubernetes.core.helm:
+    name: "{{ wso2is_k8s_release_name }}"
+    kubeconfig: "{{ kubeconfig }}"
+    chart_ref: wso2/identity-server
+    release_namespace: "{{ wso2is_k8s_namespace }}"
+    chart_version: "{{ wso2is_k8s_chart_version }}"
+    values: "{{ lookup('template', 'values.yaml.j2') | from_yaml }}"
+    wait: false # IS takes time to start, don't block Ansible indefinitely
+
+# Patch 1: Enforce Node Affinity and Tolerations
+# Reason: The official WSO2 Helm chart (v7.1.0) does not reliably apply node affinity and tolerations
+# from 'values.yaml' in some K8s environments. This patch enforces scheduling on 'high_memory' nodes
+# (k3s-node2) to ensure the resource-heavy Identity Server has sufficient capacity.
+- name: Force Node Affinity and Tolerations via Patch
+  shell: |
+    kubectl --kubeconfig={{ kubeconfig }} patch deployment {{ wso2is_k8s_release_name }}-identity-server -n {{ wso2is_k8s_namespace }} --type=merge -p '{"spec":{"template":{"spec":{"nodeSelector":{"node_type":"high_memory"},"tolerations":[{"key":"dedicated","operator":"Equal","value":"wso2","effect":"NoSchedule"}]}}}}'
+
+# Patch 2: Expose HTTP Port 9763
+# Reason: The WSO2 IS Helm chart defaults to exposing only the secure port 9443 (HTTPS).
+# To bypass TLS complications with the Ingress/Traefik communication (e.g., certificate mismatches, "requires TLS" errors),
+# we patch the Service to explicitly enable the unencrypted HTTP servlet port (9763). 
+# This allows external load balancers/ingress controllers to communicate via plain HTTP.
+- name: Patch Service to expose HTTP port 9763 (Workaround for TLS issue)
+  shell: |
+    kubectl --kubeconfig={{ kubeconfig }} get svc {{ wso2is_k8s_release_name }}-identity-server -n {{ wso2is_k8s_namespace }} -o json | jq '.spec.ports |= map(if .port == 9763 then . else . + {"name": "servlet-http", "port": 9763, "protocol": "TCP", "targetPort": 9763} end)' | kubectl --kubeconfig={{ kubeconfig }} apply -f -
+  ignore_errors: true
+
+# Patch 3: Configure Ingress for HTTP Backend
+# Reason: By default, the Ingress is configured for HTTPS backend communication ('serversscheme: https').
+# Since we are switching to the HTTP port (9763) to resolve TLS errors, we must:
+# 1. Update the backend port to 9763.
+# 2. Remove the 'traefik.ingress.kubernetes.io/service.serversscheme' annotation (defaults to HTTP).
+# 3. Remove the 'ingress.kubernetes.io/protocol' annotation to prevent forcing HTTPS.
+- name: Patch Ingress for HTTP backend (Workaround for TLS issue)
+  shell: |
+    kubectl --kubeconfig={{ kubeconfig }} patch ingress {{ wso2is_k8s_release_name }}-identity-server -n {{ wso2is_k8s_namespace }} --type=json -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/port/number", "value": 9763}, {"op": "remove", "path": "/metadata/annotations/traefik.ingress.kubernetes.io~1service.serversscheme"}, {"op": "remove", "path": "/metadata/annotations/ingress.kubernetes.io~1protocol"}]'
+  ignore_errors: true

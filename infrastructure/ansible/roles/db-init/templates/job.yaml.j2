@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wso2is-db-init
+  namespace: "{{ wso2is_init_namespace | default('default') }}"
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: check-db-ready
+          image: busybox:latest
+          command: ['sh', '-c', 'until nc -z {{ wso2is_db_host }} {{ wso2is_db_port }}; do echo waiting for db; sleep 2; done;']
+        
+        - name: copy-scripts
+          image: "{{ wso2is_image_registry }}/{{ wso2is_image_repository }}:{{ wso2is_image_tag }}"
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "Copying DB scripts to shared volume..."
+              cp -r /home/wso2carbon/wso2is-7.1.0/dbscripts /shared/
+          volumeMounts:
+            - name: shared-scripts
+              mountPath: /shared
+
+      containers:
+        - name: run-sql
+          image: mysql:8.0.34
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              echo "Running WSO2 SQL Scripts..."
+              mysql -h {{ wso2is_db_host }} -P {{ wso2is_db_port }} -u {{ wso2is_db_user }} -p'{{ wso2is_db_password }}' {{ wso2is_db_name }} < /shared/dbscripts/identity/mysql.sql
+              mysql -h {{ wso2is_db_host }} -P {{ wso2is_db_port }} -u {{ wso2is_db_user }} -p'{{ wso2is_db_password }}' {{ wso2is_db_name }} < /shared/dbscripts/consent/mysql.sql
+              mysql -h {{ wso2is_db_host }} -P {{ wso2is_db_port }} -u {{ wso2is_db_user }} -p'{{ wso2is_db_password }}' {{ wso2is_db_name }} < /shared/dbscripts/mysql.sql
+              
+              echo "DB Initialization Complete."
+          volumeMounts:
+            - name: shared-scripts
+              mountPath: /shared
+      volumes:
+        - name: shared-scripts
+          emptyDir: {}

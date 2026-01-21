@@ -46,7 +46,7 @@
 
     - name: Create Grafana admin secret (using kubectl to avoid Python issues)
       shell: |
-        kubectl create secret opaque grafana-admin \
+        kubectl create secret generic grafana-admin \
           --namespace {{ monitoring_namespace }} \
           --from-literal=admin-user="{{ grafana_admin_user }}" \
           --from-literal=admin-password="{{ grafana_admin_password }}" \
@@ -79,7 +79,6 @@
         --set server.persistentVolume.enabled=true
         --set server.persistentVolume.size={{ prometheus_pv_size }}
         --set server.persistentVolume.storageClass={{ storage_class }}
-        --set server.persistentVolume.existingClaim=prometheus-server-pvc
         --wait
 
     # -------------------------------------------------------
@@ -94,7 +93,6 @@
         --set persistence.type=pvc
         --set persistence.size={{ grafana_pv_size }}
         --set persistence.storageClassName={{ storage_class }}
-        --set persistence.existingClaim=grafana-pvc
         --set admin.existingSecret=grafana-admin
         --set admin.userKey=admin-user
         --set admin.passwordKey=admin-password

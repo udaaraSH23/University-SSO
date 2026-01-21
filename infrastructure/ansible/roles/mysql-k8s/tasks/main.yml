@@ -1,0 +1,14 @@
+- name: Create MySQL namespace
+  kubernetes.core.k8s:
+    name: "{{ mysql_k8s_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Apply MySQL Manifests
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "{{ kubeconfig }}"
+    definition: "{{ lookup('template', 'mysql-deployment.yaml.j2') | from_yaml_all }}"
+    namespace: "{{ mysql_k8s_namespace }}"

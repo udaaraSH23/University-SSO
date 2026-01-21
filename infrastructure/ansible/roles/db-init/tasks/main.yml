@@ -1,0 +1,29 @@
+---
+- name: Create DB Init namespace
+  kubernetes.core.k8s:
+    name: "{{ wso2is_init_namespace | default('default') }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+    kubeconfig: "{{ kubeconfig }}"
+
+- name: Delete existing DB Init Job
+  kubernetes.core.k8s:
+    state: absent
+    api_version: batch/v1
+    kind: Job
+    name: wso2is-db-init
+    namespace: "{{ wso2is_init_namespace | default('default') }}"
+    kubeconfig: "{{ kubeconfig }}"
+    wait: true # Wait for deletion to finish
+
+- name: Apply DB Init Job
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "{{ kubeconfig }}"
+    definition: "{{ lookup('template', 'job.yaml.j2') | from_yaml }}"
+    wait: true
+    wait_condition:
+      type: Complete
+      status: "True"
+    wait_timeout: 300

@@ -1,0 +1,13 @@
+# MySQL K8s Role Defaults
+mysql_k8s_release_name: "mysql-wso2"
+mysql_k8s_namespace: "mysql"
+mysql_k8s_chart_version: "9.10.10" # Recent stable Bitnami MySQL chart
+
+# Database Credentials
+mysql_k8s_root_password: "root-password"
+mysql_k8s_database: "wso2is"
+mysql_k8s_user: "wso2is"
+mysql_k8s_password: "wso2is-password"
+
+# Networking
+# mysql_k8s_nodeport: 30306 # Removed for ClusterIP

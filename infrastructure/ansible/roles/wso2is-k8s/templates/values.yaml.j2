@@ -1,0 +1,119 @@
+# WSO2 IS Helm Values Override
+
+deployment:
+  image:
+    registry: "{{ wso2is_image_registry }}"
+    repository: "{{ wso2is_image_repository }}"
+    tag: "{{ wso2is_image_tag }}"
+{% if wso2is_use_digest %}
+    digest: "{{ wso2is_image_digest }}"
+{% endif %}
+  
+  # User requested to disable apparmor in the example
+  apparmor:
+    enabled: false
+
+  resources:
+    requests:
+      memory: "3Gi"
+      cpu: "2000m"
+    limits:
+      memory: "6Gi"
+      cpu: "3000m"
+
+  service:
+    ports:
+      - name: servlet-http
+        port: 9763
+        protocol: TCP
+        targetPort: 9763
+      - name: servlet-https
+        port: 9443
+        protocol: TCP
+        targetPort: 9443
+
+  livenessProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 5
+
+  readinessProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 5
+
+  startupProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 90
+
+  ingress:
+    enabled: true
+    ingressClassName: "traefik"
+    hostname: "{{ wso2is_ingress_host }}"
+    annotations:
+      kubernetes.io/ingress.class: traefik
+    tls: [] 
+    #   - secretName: wso2is-tls
+    #     hosts:
+    #       - {{ wso2is_ingress_host }}
+
+    #   - secretName: wso2is-tls
+    #     hosts:
+    #       - {{ wso2is_ingress_host }}
+
+  nodeSelector:
+    node_type: high_memory
+
+  tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "wso2"
+      effect: "NoSchedule"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node_type
+            operator: In
+            values:
+            - high_memory
+
+# Injecting TOML configuration using the structure requested
+deploymentToml:
+  database:
+    identity_db:
+      type: "mysql"
+      url: "jdbc:mysql://{{ wso2is_db_host }}:{{ wso2is_db_port }}/{{ wso2is_db_name }}?autoReconnect=true&amp;useSSL=false&amp;requireSSL=false&amp;allowPublicKeyRetrieval=true"
+      username: "{{ wso2is_db_user }}"
+      password: "{{ wso2is_db_password }}"
+      driver: "com.mysql.cj.jdbc.Driver"
+    
+    shared_db:
+      type: "mysql"
+      url: "jdbc:mysql://{{ wso2is_db_host }}:{{ wso2is_db_port }}/{{ wso2is_db_name }}?autoReconnect=true&amp;useSSL=false&amp;requireSSL=false&amp;allowPublicKeyRetrieval=true"
+      username: "{{ wso2is_db_user }}"
+      password: "{{ wso2is_db_password }}"
+      driver: "com.mysql.cj.jdbc.Driver"
+      
+    user:
+      type: "mysql"
+      url: "jdbc:mysql://{{ wso2is_db_host }}:{{ wso2is_db_port }}/{{ wso2is_db_name }}?autoReconnect=true&amp;useSSL=false&amp;requireSSL=false&amp;allowPublicKeyRetrieval=true"
+      username: "{{ wso2is_db_user }}"
+      password: "{{ wso2is_db_password }}"
+      driver: "com.mysql.cj.jdbc.Driver"
+      
+    consent:
+      type: "mysql"
+      url: "jdbc:mysql://{{ wso2is_db_host }}:{{ wso2is_db_port }}/{{ wso2is_db_name }}?autoReconnect=true&amp;useSSL=false&amp;requireSSL=false&amp;allowPublicKeyRetrieval=true"
+      username: "{{ wso2is_db_user }}"
+      password: "{{ wso2is_db_password }}"
+      driver: "com.mysql.cj.jdbc.Driver"
+
+  user_store:
+    type: "database_unique_id"
+    properties:
+      CaseInsensitiveUsername: false
+      UseCaseSensitiveUsernameForCacheKeys: false
