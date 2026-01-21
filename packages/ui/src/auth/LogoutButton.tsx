@@ -28,7 +28,7 @@ export function LogoutButton() {
     // Construct WSO2 logout URL
     const logoutBaseUrl =
       process.env.NEXT_PUBLIC_WSO2_LOGOUT_URL ||
-      "https://wso2is.com/t/universityportal.com/oidc/logout";
+      "https://wso2is.com/t/universitysso.com/oidc/logout";
 
     // The callback endpoint that handles the server-side session clearing
     const appCallbackUrl = `${window.location.origin}/auth/logout-callback`;
