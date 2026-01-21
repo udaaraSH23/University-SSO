@@ -73,6 +73,7 @@ export default async function DashboardLayout({
       user={user}
       pendingBooksCount={pendingBooksCount}
       apiError={apiError}
+      logoutBaseUrl={process.env.NEXT_PUBLIC_WSO2_LOGOUT_URL}
     >
       {children}
     </DashboardShell>

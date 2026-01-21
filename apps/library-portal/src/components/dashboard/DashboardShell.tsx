@@ -20,6 +20,7 @@ interface DashboardShellProps {
     role: string;
   };
   apiError?: string;
+  logoutBaseUrl?: string;
 }
 
 /**
@@ -38,6 +39,7 @@ export default function DashboardShell({
   children,
   user,
   apiError,
+  logoutBaseUrl,
 }: DashboardShellProps) {
   useEffect(() => {
     if (apiError) {
@@ -75,6 +77,7 @@ export default function DashboardShell({
       sidebarItems={sidebarItems}
       portalTitle="Library Portal"
       subtitle="Welcome"
+      logoutBaseUrl={logoutBaseUrl}
     >
       {children}
     </GenericDashboardShell>

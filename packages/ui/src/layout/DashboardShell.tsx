@@ -31,6 +31,7 @@ export interface DashboardShellProps {
   sidebarItems: SidebarItem[];
   portalTitle: string;
   subtitle?: string;
+  logoutBaseUrl?: string;
 }
 
 /**
@@ -48,6 +49,7 @@ export function DashboardShell({
   sidebarItems,
   portalTitle,
   subtitle,
+  logoutBaseUrl,
 }: DashboardShellProps) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
@@ -63,10 +65,11 @@ export function DashboardShell({
           image: user.image,
         }}
         items={sidebarItems}
+        logoutBaseUrl={logoutBaseUrl}
         footer={
           // Mobile logout button
           <div className="md:hidden">
-            <LogoutButton />
+            <LogoutButton logoutBaseUrl={logoutBaseUrl} />
           </div>
         }
       />
@@ -81,7 +84,11 @@ export function DashboardShell({
       )}
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative md:ml-64">
-        <DashboardTopBar title={portalTitle} subtitle={subtitle} />
+        <DashboardTopBar
+          title={portalTitle}
+          subtitle={subtitle}
+          logoutBaseUrl={logoutBaseUrl}
+        />
         <div className="flex-1 overflow-y-auto px-4 md:px-10 pb-10 pt-20 md:pt-0 flex flex-col">
           <div className="flex-1">{children}</div>
           <DashboardFooter />

@@ -30,6 +30,7 @@ interface DashboardShellProps {
   };
   pendingBooksCount?: number;
   apiError?: string;
+  logoutBaseUrl?: string;
 }
 
 /**
@@ -43,6 +44,7 @@ export default function DashboardShell({
   user,
   pendingBooksCount,
   apiError,
+  logoutBaseUrl,
 }: DashboardShellProps) {
   useEffect(() => {
     if (apiError) {
@@ -95,6 +97,7 @@ export default function DashboardShell({
       sidebarItems={sidebarItems}
       portalTitle="Student Portal"
       subtitle="Welcome"
+      logoutBaseUrl={logoutBaseUrl}
     >
       {children}
     </GenericDashboardShell>

@@ -55,7 +55,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <DashboardShell user={user} apiError={apiError}>
+    <DashboardShell
+      user={user}
+      apiError={apiError}
+      logoutBaseUrl={process.env.NEXT_PUBLIC_WSO2_LOGOUT_URL}
+    >
       {children}
     </DashboardShell>
   );
