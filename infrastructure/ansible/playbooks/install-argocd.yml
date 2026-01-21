@@ -3,8 +3,8 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  # vars_files:
-  #   - secrets.yml
+  vars_files:
+    - secrets.yml
   vars:
     # Path to the kubeconfig fetched from your Azure VM
     kubeconfig_local_path: "./kubeconfig_azure.yaml"
