@@ -28,6 +28,7 @@ interface DashboardShellProps {
     image?: string;
   };
   apiError?: string;
+  logoutBaseUrl?: string;
 }
 
 /**
@@ -46,6 +47,7 @@ export default function DashboardShell({
   children,
   user,
   apiError,
+  logoutBaseUrl,
 }: DashboardShellProps) {
   useEffect(() => {
     if (apiError) {
@@ -113,6 +115,7 @@ export default function DashboardShell({
       sidebarItems={sidebarItems}
       portalTitle="UniAdmin"
       subtitle="Administrator"
+      logoutBaseUrl={logoutBaseUrl}
     >
       {children}
     </GenericDashboardShell>

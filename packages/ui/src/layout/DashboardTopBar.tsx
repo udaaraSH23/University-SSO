@@ -23,6 +23,7 @@ export interface DashboardTopBarProps {
   subtitle?: string;
   /** Optional custom right-side content (default: LogoutButton) */
   rightContent?: ReactNode;
+  logoutBaseUrl?: string;
 }
 
 /**
@@ -38,6 +39,7 @@ export function DashboardTopBar({
   title,
   subtitle = "Welcome",
   rightContent,
+  logoutBaseUrl,
 }: DashboardTopBarProps) {
   return (
     <motion.header
@@ -52,7 +54,7 @@ export function DashboardTopBar({
           {title}
         </h1>
       </div>
-      {rightContent || <LogoutButton />}
+      {rightContent || <LogoutButton logoutBaseUrl={logoutBaseUrl} />}
     </motion.header>
   );
 }

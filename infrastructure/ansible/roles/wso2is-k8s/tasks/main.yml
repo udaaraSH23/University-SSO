@@ -40,6 +40,16 @@
     kubectl --kubeconfig={{ kubeconfig }} get svc {{ wso2is_k8s_release_name }}-identity-server -n {{ wso2is_k8s_namespace }} -o json | jq '.spec.ports |= map(if .port == 9763 then . else . + {"name": "servlet-http", "port": 9763, "protocol": "TCP", "targetPort": 9763} end)' | kubectl --kubeconfig={{ kubeconfig }} apply -f -
   ignore_errors: true
 
+# Patch 2b: Expose Internal HTTPS Port 443
+# Reason: Setup CoreDNS rewriting maps 'wso2is.com' to the internal service IP.
+# Browsers/Apps requesting 'wso2is.com' default to port 443.
+# The WSO2 service listens on 9443 by default. We must expose 443 -> 9443
+# so that internal traffic is routed correctly without specifying a custom port.
+- name: Patch Service to expose Internal HTTPS port 443
+  shell: |
+    kubectl --kubeconfig={{ kubeconfig }} get svc {{ wso2is_k8s_release_name }}-identity-server -n {{ wso2is_k8s_namespace }} -o json | jq 'if (.spec.ports | map(select(.port == 443)) | length > 0) then . else .spec.ports += [{"name": "https-internal", "port": 443, "targetPort": 9443, "protocol": "TCP"}] end' | kubectl --kubeconfig={{ kubeconfig }} apply -f -
+  ignore_errors: true
+
 # Patch 3: Configure Ingress for HTTP Backend
 # Reason: By default, the Ingress is configured for HTTPS backend communication ('serversscheme: https').
 # Since we are switching to the HTTP port (9763) to resolve TLS errors, we must:

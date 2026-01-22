@@ -17,23 +17,22 @@ import { LogOut } from "lucide-react";
  * LogoutButton Component.
  *
  * Renders a button that initiates a federated logout flow.
- * 1. Redirects to WSO2 IdP to terminate global session.
- * 2. WSO2 redirects back to /auth/logout-callback (server route).
- * 3. Server route clears NextAuth session and redirects to login.
+ * @param {string} logoutBaseUrl - The base URL for WSO2 logout (provided from server)
  */
-export function LogoutButton() {
+export function LogoutButton({ logoutBaseUrl }: { logoutBaseUrl?: string }) {
   const { data: session } = useSession();
 
   const handleLogout = () => {
     // Construct WSO2 logout URL
-    const logoutBaseUrl =
+    const finalLogoutBaseUrl =
+      logoutBaseUrl ||
       process.env.NEXT_PUBLIC_WSO2_LOGOUT_URL ||
-      "https://wso2is.com/t/universityportal.com/oidc/logout";
+      "https://wso2is.com/t/universitysso.com/oidc/logout";
 
     // The callback endpoint that handles the server-side session clearing
     const appCallbackUrl = `${window.location.origin}/auth/logout-callback`;
 
-    const logoutUrl = new URL(logoutBaseUrl);
+    const logoutUrl = new URL(finalLogoutBaseUrl);
     logoutUrl.searchParams.set("post_logout_redirect_uri", appCallbackUrl);
 
     // Include id_token_hint if available (recommended by OIDC spec)

@@ -141,6 +141,25 @@ async function main() {
     },
   });
 
+  // Custom User (from user request)
+  await prisma.user.create({
+    data: {
+      username: "student1",
+      email: "student1@gmail.com",
+      role: "STUDENT",
+      wso2_id: "jfjhgfghj2",
+      studentProfile: {
+        create: {
+          student_id: "ST001",
+          full_name: "Student Name",
+          degreeProgramId: csDegree.id,
+          currentAcademicYear: "2025-2026",
+          level: 1,
+        },
+      },
+    },
+  });
+
   // 5. Create Courses
   console.log("Creating Courses...");
   const courseData = [

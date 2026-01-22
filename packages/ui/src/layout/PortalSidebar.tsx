@@ -35,6 +35,7 @@ export interface SidebarItem {
 export interface PortalSidebarProps extends Omit<SidebarProps, "children"> {
   items: SidebarItem[];
   pendingBooksCount?: number;
+  logoutBaseUrl?: string;
 }
 
 /**
