@@ -4,6 +4,27 @@ prometheus:
       enabled: true
       size: "10Gi"
       storageClass: "local-path"
+    extraScrapeConfigs: |
+      - job_name: student-portal
+        metrics_path: /api/metrics
+        static_configs:
+        - targets:
+          - student-portal.default.svc.cluster.local:3000
+      - job_name: library-portal
+        metrics_path: /api/metrics
+        static_configs:
+        - targets:
+          - library-portal.default.svc.cluster.local:3000
+      - job_name: admin-portal
+        metrics_path: /api/metrics
+        static_configs:
+        - targets:
+          - admin-portal.default.svc.cluster.local:3000
+      - job_name: wso2is
+        metrics_path: /metric
+        static_configs:
+        - targets:
+          - wso2-is-identity-server.wso2is.svc.cluster.local:9763
 
 grafana:
   persistence:
