@@ -10,14 +10,15 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@repo/auth": "*",
     "@repo/api-client": "*",
+    "@repo/auth": "*",
     "@repo/backend": "^0.0.0",
     "@repo/logger": "^0.0.0",
     "@repo/tailwind-config": "*",
     "@repo/ui": "*",
     "framer-motion": "^11.0.0",
     "next": "16.1.0",
+    "prom-client": "^15.1.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "sonner": "^2.0.7"
