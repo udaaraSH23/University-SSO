@@ -88,8 +88,42 @@ Common entry points:
 
 - `infrastructure/k8s/` for Kubernetes manifests (apps, database, secrets, and related resources).
 - `infrastructure/ansible/` for Ansible playbooks that apply deployment configuration and secrets.
+- `infrastructure/terraform/` for Azure infrastructure provisioning (K3s VM + networking).
 
 > Review and update environment-specific values (namespace, image tags, and secrets) before applying to your environment.
+
+#### Provisioning with Terraform (Azure)
+
+Use Terraform to provision the Azure VMs, networking, and public IPs for a small K3s cluster.
+
+1. Review or override defaults in `infrastructure/terraform/variables.tf`.
+2. Authenticate to Azure (e.g., `az login`) and run:
+
+```bash
+cd infrastructure/terraform
+terraform init
+terraform apply
+```
+
+Terraform outputs the public IPs you’ll use for Ansible inventory or SSH. For more details, see `infrastructure/terraform/README.md`.
+
+#### Deploying with Ansible
+
+Ansible playbooks install K3s, deploy ArgoCD, seed secrets, and install IAM/monitoring stacks.
+
+1. Create an inventory with `k3s_master` and `k3s_worker` hosts.
+2. Create `infrastructure/ansible/playbooks/secrets.yml` (recommended via Ansible Vault) with the variables referenced by the playbooks.
+3. Run the playbooks from the `infrastructure/ansible` directory:
+
+```bash
+ansible-playbook playbooks/install-k3s.yml -i inventory.ini -e "public_ip=<MASTER_PUBLIC_IP>" -e "private_ip=<MASTER_PRIVATE_IP>"
+ansible-playbook playbooks/install-argocd.yml
+ansible-playbook playbooks/deploy-secrets.yml
+ansible-playbook playbooks/install-iam-stack.yml
+ansible-playbook playbooks/monitoring-stack.yaml
+```
+
+For prerequisites and playbook details, see `infrastructure/ansible/README.md`.
 
 ## Functionality Overview
 
