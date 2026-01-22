@@ -76,6 +76,7 @@
         helm upgrade --install prometheus prometheus-community/prometheus
         --namespace {{ monitoring_namespace }}
         --kubeconfig {{ kubeconfig_local_path }}
+        -f values-monitoring.yaml
         --set server.persistentVolume.enabled=true
         --set server.persistentVolume.size={{ prometheus_pv_size }}
         --set server.persistentVolume.storageClass={{ storage_class }}
