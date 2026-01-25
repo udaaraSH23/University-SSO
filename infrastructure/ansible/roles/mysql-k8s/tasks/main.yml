@@ -5,6 +5,14 @@
     kind: Namespace
     state: present
     kubeconfig: "{{ kubeconfig }}"
+- name: Remove old MySQL Deployment (Migration to StatefulSet)
+  kubernetes.core.k8s:
+    name: mysql
+    namespace: "{{ mysql_k8s_namespace }}"
+    api_version: apps/v1
+    kind: Deployment
+    state: absent
+    kubeconfig: "{{ kubeconfig }}"
 
 - name: Apply MySQL Manifests
   kubernetes.core.k8s:

@@ -10,12 +10,38 @@ stringData:
   mysql-password: "{{ mysql_k8s_password }}"
 
 ---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: mysql-local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: mysql-local-storage
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/var/lib/k3d-vol/mysql"
+    type: DirectoryOrCreate
+
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mysql-pv-claim
+  name: mysql-pv-claim-persistent
   namespace: {{ mysql_k8s_namespace }}
 spec:
+  storageClassName: mysql-local-storage
   accessModes:
     - ReadWriteOnce
   resources:
@@ -24,13 +50,14 @@ spec:
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mysql
   namespace: {{ mysql_k8s_namespace }}
   labels:
     app: mysql
 spec:
+  serviceName: "mysql-wso2"
   replicas: 1
   selector:
     matchLabels:
@@ -42,9 +69,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          # Using specific version as requested/implied or falling back to a stable one. 
-          # User sample had mysql:8.0.34
-          image: mysql:8.0.34 
+          image: mysql:8.0.34
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
@@ -71,8 +96,8 @@ spec:
       volumes:
         - name: mysql-persistent-storage
           persistentVolumeClaim:
-            claimName: mysql-pv-claim
-
+            claimName: mysql-pv-claim-persistent
+      
       nodeSelector:
         node_type: high_memory
       

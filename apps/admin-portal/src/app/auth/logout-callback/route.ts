@@ -18,5 +18,7 @@ export async function GET(req: Request) {
   }
 
   await signOut({ redirect: false });
-  return NextResponse.redirect(new URL("/login", req.url));
+  // Use the configured external URL as the base, or fallback to request URL
+  const baseUrl = process.env.NEXT_PUBLIC_ADMIN_URL || req.url;
+  return NextResponse.redirect(new URL("/login", baseUrl));
 }

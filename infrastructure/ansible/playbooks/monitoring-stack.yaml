@@ -82,9 +82,19 @@
         --set server.persistentVolume.storageClass={{ storage_class }}
         --wait
 
-    # -------------------------------------------------------
+     # -------------------------------------------------------
     # 5. DEPLOY GRAFANA
     # -------------------------------------------------------
+    - name: Create Grafana Dashboard ConfigMap
+      shell: |
+        kubectl create configmap grafana-dashboard-portals \
+          --namespace {{ monitoring_namespace }} \
+          --from-file=university-portals.json=grafana-dashboard.json \
+          --kubeconfig {{ kubeconfig_local_path }} \
+          --dry-run=client -o yaml | \
+        kubectl label --local -f - grafana_dashboard=1 -o yaml | \
+        kubectl apply --kubeconfig {{ kubeconfig_local_path }} -f -
+
     - name: Deploy Grafana
       command: >
         helm upgrade --install grafana grafana/grafana
@@ -98,4 +108,22 @@
         --set admin.userKey=admin-user
         --set admin.passwordKey=admin-password
         --set ingress.enabled=false
+        --set sidecar.dashboards.enabled=true
+        --set sidecar.dashboards.label=grafana_dashboard
+        --set sidecar.dashboards.searchNamespace={{ monitoring_namespace }}
+        --set "datasources.datasources\.yaml.apiVersion=1"
+        --set "datasources.datasources\.yaml.datasources[0].name=Prometheus"
+        --set "datasources.datasources\.yaml.datasources[0].type=prometheus"
+        --set "datasources.datasources\.yaml.datasources[0].url=http://prometheus-server"
+        --set "datasources.datasources\.yaml.datasources[0].access=proxy"
+        --set "datasources.datasources\.yaml.datasources[0].isDefault=true"
         --wait
+
+    # -------------------------------------------------------
+    # 6. POST-INSTALL CONFIGURATION (Persistent Patch)
+    # -------------------------------------------------------
+    - name: Patch Prometheus ConfigMap with Scrape Configs
+      shell: |
+        kubectl patch configmap prometheus-server -n monitoring --type merge -p '{"data":{"prometheus.yml":"global:\n  scrape_interval: 1m\n  scrape_timeout: 10s\n  evaluation_interval: 1m\nalerting:\n  alertmanagers:\n  - static_configs:\n    - targets: []\n    scheme: http\n    timeout: 10s\n    api_version: v2\nscrape_configs:\n- job_name: prometheus\n  static_configs:\n  - targets:\n    - localhost:9090\n- job_name: student-portal\n  metrics_path: /api/metrics\n  static_configs:\n  - targets:\n    - student-portal.default.svc.cluster.local:80\n- job_name: library-portal\n  metrics_path: /api/metrics\n  static_configs:\n  - targets:\n    - library-portal.default.svc.cluster.local:80\n- job_name: admin-portal\n  metrics_path: /api/metrics\n  static_configs:\n  - targets:\n    - admin-portal.default.svc.cluster.local:80\n"}}' --kubeconfig {{ kubeconfig_local_path }}
+        
+        kubectl rollout restart deployment prometheus-server -n monitoring --kubeconfig {{ kubeconfig_local_path }}

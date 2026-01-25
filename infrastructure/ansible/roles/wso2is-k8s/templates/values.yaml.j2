@@ -84,14 +84,14 @@ deployment:
 # Injecting TOML configuration using the structure requested
 deploymentToml:
   database:
-    identity_db:
+    identity:
       type: "mysql"
       url: "jdbc:mysql://{{ wso2is_db_host }}:{{ wso2is_db_port }}/{{ wso2is_db_name }}?autoReconnect=true&amp;useSSL=false&amp;requireSSL=false&amp;allowPublicKeyRetrieval=true"
       username: "{{ wso2is_db_user }}"
       password: "{{ wso2is_db_password }}"
       driver: "com.mysql.cj.jdbc.Driver"
     
-    shared_db:
+    shared:
       type: "mysql"
       url: "jdbc:mysql://{{ wso2is_db_host }}:{{ wso2is_db_port }}/{{ wso2is_db_name }}?autoReconnect=true&amp;useSSL=false&amp;requireSSL=false&amp;allowPublicKeyRetrieval=true"
       username: "{{ wso2is_db_user }}"
@@ -112,7 +112,14 @@ deploymentToml:
       password: "{{ wso2is_db_password }}"
       driver: "com.mysql.cj.jdbc.Driver"
 
-  user_store:
+  realmManager:
+    dataSource: "user"
+
+  authentication:
+    consent:
+      dataSource: "jdbc/consent"
+
+  userStore:
     type: "database_unique_id"
     properties:
       CaseInsensitiveUsername: false

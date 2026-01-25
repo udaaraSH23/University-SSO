@@ -9,19 +9,22 @@ prometheus:
         metrics_path: /api/metrics
         static_configs:
         - targets:
-          - student-portal.default.svc.cluster.local:3000
+          - student-portal.default.svc.cluster.local:80
       - job_name: library-portal
         metrics_path: /api/metrics
         static_configs:
         - targets:
-          - library-portal.default.svc.cluster.local:3000
+          - library-portal.default.svc.cluster.local:80
       - job_name: admin-portal
         metrics_path: /api/metrics
         static_configs:
         - targets:
-          - admin-portal.default.svc.cluster.local:3000
+          - admin-portal.default.svc.cluster.local:80
       - job_name: wso2is
         metrics_path: /metric
+        basic_auth:
+          username: admin
+          password: admin
         static_configs:
         - targets:
           - wso2-is-identity-server.wso2is.svc.cluster.local:9763

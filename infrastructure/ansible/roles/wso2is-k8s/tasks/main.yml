@@ -37,7 +37,7 @@
 # This allows external load balancers/ingress controllers to communicate via plain HTTP.
 - name: Patch Service to expose HTTP port 9763 (Workaround for TLS issue)
   shell: |
-    kubectl --kubeconfig={{ kubeconfig }} get svc {{ wso2is_k8s_release_name }}-identity-server -n {{ wso2is_k8s_namespace }} -o json | jq '.spec.ports |= map(if .port == 9763 then . else . + {"name": "servlet-http", "port": 9763, "protocol": "TCP", "targetPort": 9763} end)' | kubectl --kubeconfig={{ kubeconfig }} apply -f -
+    kubectl --kubeconfig={{ kubeconfig }} get svc {{ wso2is_k8s_release_name }}-identity-server -n {{ wso2is_k8s_namespace }} -o json | jq 'if (.spec.ports | map(select(.port == 9763)) | length > 0) then . else .spec.ports += [{"name": "servlet-http", "port": 9763, "protocol": "TCP", "targetPort": 9763}] end' | kubectl --kubeconfig={{ kubeconfig }} apply -f -
   ignore_errors: true
 
 # Patch 2b: Expose Internal HTTPS Port 443
@@ -58,5 +58,8 @@
 # 3. Remove the 'ingress.kubernetes.io/protocol' annotation to prevent forcing HTTPS.
 - name: Patch Ingress for HTTP backend (Workaround for TLS issue)
   shell: |
-    kubectl --kubeconfig={{ kubeconfig }} patch ingress {{ wso2is_k8s_release_name }}-identity-server -n {{ wso2is_k8s_namespace }} --type=json -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/port/number", "value": 9763}, {"op": "remove", "path": "/metadata/annotations/traefik.ingress.kubernetes.io~1service.serversscheme"}, {"op": "remove", "path": "/metadata/annotations/ingress.kubernetes.io~1protocol"}]'
+    kubectl --kubeconfig={{ kubeconfig }} patch ingress {{ wso2is_k8s_release_name }}-identity-server -n {{ wso2is_k8s_namespace }} --type=json -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/port/number", "value": 9763}, {"op": "remove", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1backend-protocol"}]'
   ignore_errors: true
+
+
+
