@@ -1,0 +1,39 @@
+---
+- name: Deploy ArgoCD Applications
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # Path to the kubeconfig fetched from your Azure VM
+    kubeconfig_local_path: "./kubeconfig_azure.yaml"
+    argocd_namespace: argocd
+    
+    # Path to the apps template relative to this playbook
+    apps_template_path: "../../k8s/argocd/apps.yaml.j2"
+
+  tasks:
+    - name: Check if kubeconfig exists locally
+      stat:
+        path: "{{ kubeconfig_local_path }}"
+      register: kubeconfig_check
+
+    - name: Fail if kubeconfig is missing
+      fail:
+        msg: >
+          "{{ kubeconfig_local_path }}" not found!
+          Please ensure kubeconfig is present in the playbook directory.
+      when: not kubeconfig_check.stat.exists
+
+    - name: Render and Apply ArgoCD Apps Manifests
+      shell: |
+        cat <<EOF | kubectl apply --kubeconfig {{ kubeconfig_local_path }} -f -
+        {{ lookup('template', apps_template_path) }}
+        EOF
+      args:
+        executable: /bin/bash
+      register: kubectl_apply
+      changed_when: "'configured' in kubectl_apply.stdout or 'created' in kubectl_apply.stdout"
+
+    - name: Display Apply Result
+      debug:
+        msg: "{{ kubectl_apply.stdout_lines }}"

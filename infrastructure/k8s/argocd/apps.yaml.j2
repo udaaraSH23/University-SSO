@@ -1,0 +1,114 @@
+# ==============================================================================
+# ArgoCD Application: Student Portal
+# ==============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: student-portal
+  # The namespace where this Application Custom Resource resides (usually argocd)
+  namespace: argocd
+  # Finalizer ensures that when this Application is deleted, the child resources
+  # (deployments, services, etc.) are also deleted from the cluster (cascading delete).
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # The ArgoCD Project this application belongs to. Projects group apps and set policies.
+  # 'default' is the pre-configured project with permissive access.
+  project: default
+
+  # Source configuration: Where the manifests are located
+  source:
+    repoURL: {{ git_repo_url }}
+    targetRevision: main
+    path: infrastructure/k8s/apps/student-portal
+
+  # Destination configuration: Where the manifests should be deployed
+  destination:
+    # 'https://kubernetes.default.svc' targets the same cluster ArgoCD is running in.
+    # Use the cluster API URL if deploying to a remote cluster.
+    server: https://kubernetes.default.svc
+    # The target namespace for the application resources
+    namespace: default
+
+  # Sync Policy automates the deployment process
+  syncPolicy:
+    automated:
+      # Prune: Delete resources in the cluster that are no longer in Git (GitOps source of truth)
+      prune: true
+      # SelfHeal: Automatically correct manual changes in the cluster to match Git state
+      selfHeal: true
+
+---
+# ==============================================================================
+# ArgoCD Application: Library Portal
+# ==============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: library-portal
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ git_repo_url }}
+    targetRevision: main
+    path: infrastructure/k8s/apps/library-portal
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+---
+# ==============================================================================
+# ArgoCD Application: Admin Portal
+# ==============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: admin-portal
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ git_repo_url }}
+    targetRevision: main
+    path: infrastructure/k8s/apps/admin-portal
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+---
+# ==============================================================================
+# ArgoCD Application: Postgres Database
+# ==============================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ git_repo_url }}
+    targetRevision: main
+    path: infrastructure/k8s/apps/postgres
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
