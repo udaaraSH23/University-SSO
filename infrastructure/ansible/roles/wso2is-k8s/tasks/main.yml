@@ -60,6 +60,3 @@
   shell: |
     kubectl --kubeconfig={{ kubeconfig }} patch ingress {{ wso2is_k8s_release_name }}-identity-server -n {{ wso2is_k8s_namespace }} --type=json -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/port/number", "value": 9763}, {"op": "remove", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1backend-protocol"}, {"op": "add", "path": "/spec/tls", "value": [{"hosts": ["wso2is.com"], "secretName": "wso2is-tls-cert"}]}]'
   ignore_errors: true
-
-
-

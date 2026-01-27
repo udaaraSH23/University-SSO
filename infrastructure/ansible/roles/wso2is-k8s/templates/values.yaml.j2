@@ -31,6 +31,10 @@ deployment:
         port: 9443
         protocol: TCP
         targetPort: 9443
+      - name: https-internal
+        port: 443
+        protocol: TCP
+        targetPort: 9443
 
   livenessProbe:
     initialDelaySeconds: 60
@@ -53,14 +57,10 @@ deployment:
     hostname: "{{ wso2is_ingress_host }}"
     annotations:
       kubernetes.io/ingress.class: traefik
-    tls: [] 
-    #   - secretName: wso2is-tls
-    #     hosts:
-    #       - {{ wso2is_ingress_host }}
-
-    #   - secretName: wso2is-tls
-    #     hosts:
-    #       - {{ wso2is_ingress_host }}
+    tls: 
+      - secretName: wso2is-tls-cert
+        hosts:
+          - "{{ wso2is_ingress_host }}"
 
   nodeSelector:
     node_type: high_memory

@@ -120,23 +120,60 @@ export class AdminService extends BaseService implements IAdminService {
       }
 
       // 4. Save to database
-      const profile = await prisma.staffProfile.create({
-        data: {
-          fullName: data.fullName,
-          staffType: data.staffType,
-          user: {
-            create: {
-              username: data.username,
-              email: data.email,
-              role: data.role,
-              wso2_id: wso2Id,
-            },
-          },
-        },
-        include: {
-          user: true,
+      // Check if user already exists locally
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [{ email: data.email }, { wso2_id: wso2Id }],
         },
       });
+
+      let profile;
+
+      if (existingUser) {
+        // Ensure user has correct role/info if needed, or just link
+        // We might want to update the WSO2 ID if it was missing
+        if (!existingUser.wso2_id) {
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: { wso2_id: wso2Id },
+          });
+        }
+
+        // Link to existing user
+        profile = await prisma.staffProfile.create({
+          data: {
+            fullName: data.fullName,
+            staffType: data.staffType,
+            user: {
+              connect: {
+                id: existingUser.id,
+              },
+            },
+          },
+          include: {
+            user: true,
+          },
+        });
+      } else {
+        // Create new user
+        profile = await prisma.staffProfile.create({
+          data: {
+            fullName: data.fullName,
+            staffType: data.staffType,
+            user: {
+              create: {
+                username: data.username,
+                email: data.email,
+                role: data.role,
+                wso2_id: wso2Id,
+              },
+            },
+          },
+          include: {
+            user: true,
+          },
+        });
+      }
 
       const result = {
         id: profile.id,

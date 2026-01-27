@@ -24,3 +24,4 @@ wso2is_db_password: "wso2is-password" # Should match mysql-k8s role
 
 # Ingress
 wso2is_ingress_host: "is.university.edu"
+wso2is_email_enabled: true

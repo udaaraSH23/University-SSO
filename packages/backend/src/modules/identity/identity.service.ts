@@ -115,6 +115,18 @@ export class IdentityService implements IIdentityService {
       });
 
       if (!response.ok) {
+        // Handle User Already Exists (409)
+        if (response.status === 409) {
+          logger.warn(
+            { userName: data.userName },
+            "User already exists in WSO2. Fetching existing user ID."
+          );
+          const existingUserId = await this.getUserByUsername(data.userName);
+          if (existingUserId) {
+            return existingUserId;
+          }
+        }
+
         const error = await response.text();
         logger.error({ error }, "Failed to create WSO2 user");
         throw new DomainError(
@@ -133,6 +145,35 @@ export class IdentityService implements IIdentityService {
         "Failed to create user in Identity Server",
         ERROR_CODES.IDENTITY_SERVER_ERROR
       );
+    }
+  }
+
+  /**
+   * Fetches a user's ID by username from WSO2.
+   * Helper for idempotency.
+   */
+  private async getUserByUsername(username: string): Promise<string | null> {
+    try {
+      const token = await this.getManagementToken();
+      const response = await fetch(
+        `${this.baseUrl}/scim2/Users?filter=userName eq ${username}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      if (data.totalResults > 0 && data.Resources.length > 0) {
+        return data.Resources[0].id;
+      }
+      return null;
+    } catch (error) {
+      logger.error({ error, username }, "Failed to fetch user by username");
+      return null;
     }
   }
 

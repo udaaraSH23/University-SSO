@@ -5,6 +5,8 @@
   gather_facts: false
   vars:
     kubeconfig: "./kubeconfig_azure.yaml"
+  vars_files:
+    - secrets.yml
   roles:
     - role: ../roles/mysql-k8s
     # Pass variables needed for DB Init Job
