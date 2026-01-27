@@ -1,3 +1,5 @@
+```mermaid
+
 flowchart TB
   %% Subgraph for Infrastructure
   subgraph Azure["fab:fa-microsoft Azure (Terraform)"]
@@ -119,3 +121,4 @@ flowchart TB
   class student_secret,library_secret,admin_secret,secrets secret;
   class prometheus,alertmanager,grafana monitor;
   class Azure cloud;
+  ```
