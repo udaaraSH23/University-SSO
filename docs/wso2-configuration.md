@@ -38,12 +38,11 @@ Create the following roles in the root organization and map them to the groups a
 
 ## 3) Create Applications (Traditional Web Apps)
 
-Create **four applications** as **Traditional Web Applications** in WSO2 IS:
+Create **Three applications** as **Traditional Web Applications** in WSO2 IS:
 
-1. **Login Portal**
-2. **Student Portal**
-3. **Library Portal**
-4. **Admin Portal**
+1. **Student Portal**
+2. **Library Portal**
+3. **Admin Portal**
 
 For each application:
 
