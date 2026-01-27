@@ -1,0 +1,12 @@
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = admin.local
+DNS.2 = student.local
+DNS.3 = library.local
+DNS.4 = wso2is.com
+DNS.5 = localhost
+IP.1 = 127.0.0.1
