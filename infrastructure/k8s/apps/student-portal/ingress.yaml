@@ -6,6 +6,10 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "traefik" # Assuming k3s uses traefik by default
 spec:
+  tls:
+    - hosts:
+        - student.local
+      secretName: portal-tls-cert
   rules:
     - host: student.local
       http:

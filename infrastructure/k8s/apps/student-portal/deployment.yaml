@@ -27,3 +27,7 @@ spec:
           env:
             - name: NODE_ENV
               value: "production"
+      hostAliases:
+        - ip: "10.43.11.98"
+          hostnames:
+            - "wso2is.com"

@@ -6,6 +6,10 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "traefik"
 spec:
+  tls:
+    - hosts:
+        - admin.local
+      secretName: portal-tls-cert
   rules:
     - host: admin.local
       http:

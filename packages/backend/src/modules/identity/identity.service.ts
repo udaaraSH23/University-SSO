@@ -30,7 +30,7 @@ export class IdentityService implements IIdentityService {
 
   constructor() {
     this.baseUrl =
-      process.env.WSO2_BASE_URL || "https://wso2is.com/t/universitysso.com";
+      process.env.WSO2_BASE_URL || "https://wso2is.com/t/uniportal.com";
     this.clientId = process.env.WSO2_CLIENT_ID || "";
     this.clientSecret = process.env.WSO2_CLIENT_SECRET || "";
     this.tokenUrl =

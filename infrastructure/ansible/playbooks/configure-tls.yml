@@ -1,0 +1,59 @@
+---
+- name: Configure Self-Signed TLS
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    kubeconfig_local_path: "./kubeconfig_azure.yaml"
+    cert_dir: "../../scripts/pki"
+    
+  tasks:
+    - name: Ensure certificate generation script is executable
+      file:
+        path: "../../scripts/generate-certs.sh"
+        mode: '0755'
+
+    - name: Run certificate generation script
+      shell: "./generate-certs.sh"
+      args:
+        chdir: "../../scripts"
+        creates: "pki/server.crt"
+
+    - name: Read Certificate and Key
+      slurp:
+        src: "{{ item }}"
+      register: cert_files
+      loop:
+        - "../../scripts/pki/server.crt"
+        - "../../scripts/pki/server.key"
+
+    - name: Set facts for decoded cert and key
+      set_fact:
+        tls_cert: "{{ cert_files.results[0].content | b64decode }}"
+        tls_key: "{{ cert_files.results[1].content | b64decode }}"
+
+    - name: Create TLS Secret in Default Namespace
+      shell: |
+        kubectl create secret tls portal-tls-cert \
+          --cert={{ cert_dir }}/server.crt \
+          --key={{ cert_dir }}/server.key \
+          --namespace default \
+          --kubeconfig {{ kubeconfig_local_path }} \
+          --dry-run=client -o yaml | kubectl apply --kubeconfig {{ kubeconfig_local_path }} -f -
+
+    - name: Create TLS Secret in WSO2 Namespace
+      shell: |
+        kubectl create secret tls wso2is-tls-cert \
+          --cert={{ cert_dir }}/server.crt \
+          --key={{ cert_dir }}/server.key \
+          --namespace wso2is \
+          --kubeconfig {{ kubeconfig_local_path }} \
+          --dry-run=client -o yaml | kubectl apply --kubeconfig {{ kubeconfig_local_path }} -f -
+
+    - name: Create Truststore Secret (Root CA) in Default Namespace
+      shell: |
+        kubectl create secret generic internal-ca-cert \
+          --from-file=rootCA.crt={{ cert_dir }}/rootCA.crt \
+          --namespace default \
+          --kubeconfig {{ kubeconfig_local_path }} \
+          --dry-run=client -o yaml | kubectl apply --kubeconfig {{ kubeconfig_local_path }} -f -
